@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App -->
+    <string name="app_name">Heart Monitor</string>
+
+    <!-- Notifications -->
+    <string name="notification_channel_name">Nabız İzleme</string>
+    <string name="notification_channel_description">Arka planda nabız izleme servisi</string>
+    <string name="notification_title">Nabız İzleniyor</string>
+    <string name="notification_text_connecting">Cihaza bağlanılıyor…</string>
+    <string name="notification_text_connected">Bağlı - %d BPM</string>
+    <string name="notification_text_disconnected">Bağlantı kesildi - Yeniden bağlanılıyor…</string>
+
+    <!-- Navigation -->
+    <string name="nav_live">Canlı</string>
+    <string name="nav_monitor">İzleme</string>
+    <string name="nav_settings">Ayarlar</string>
+
+    <!-- Connection Status -->
+    <string name="status_connected">Bağlı</string>
+    <string name="status_connecting">Bağlanıyor…</string>
+    <string name="status_searching">Aranıyor…</string>
+    <string name="status_disconnected">Bağlı Değil</string>
+    <string name="status_bluetooth_off">Bluetooth Kapalı</string>
+
+    <!-- Heart Rate Display -->
+    <string name="hr_no_connection">Bağlantı Yok</string>
+    <string name="hr_status_low">Düşük</string>
+    <string name="hr_status_high">Yüksek</string>
+    <string name="hr_status_high_warning">Yüksek!</string>
+    <string name="hr_status_normal">Normal</string>
+    <string name="hr_unit_bpm">BPM</string>
+
+    <!-- Dashboard Screen -->
+    <string name="dashboard_title">Heart Rate Monitor</string>
+    <string name="dashboard_settings">Ayarlar</string>
+    <string name="dashboard_bluetooth">Bluetooth</string>
+    <string name="dashboard_on">Açık</string>
+    <string name="dashboard_off">Kapalı</string>
+    <string name="dashboard_bluetooth_on">Açık</string>
+    <string name="dashboard_bluetooth_off">Kapalı</string>
+    <string name="dashboard_device">Cihaz</string>
+    <string name="dashboard_device_label">Nabız Ölçer</string>
+    <string name="dashboard_btn_stop">Durdur</string>
+    <string name="dashboard_btn_start">Başlat</string>
+    <string name="dashboard_service_running">Servis çalışıyor</string>
+    <string name="dashboard_service_stopped">Servis durduruldu</string>
+    <string name="dashboard_last_measurements">Son %d Ölçüm</string>
+    <string name="dashboard_stat_min">Min: %d</string>
+    <string name="dashboard_stat_avg">Ort: %d</string>
+    <string name="dashboard_stat_max">Max: %d</string>
+    <string name="dashboard_info_battery">PİL</string>
+    <string name="dashboard_info_contact">TEMAS</string>
+    <string name="dashboard_info_today">BUGÜN</string>
+    <string name="dashboard_info_last_update">ÖNCE</string>
+    <string name="dashboard_contact_yes">Var</string>
+    <string name="dashboard_contact_no">Yok</string>
+    <string name="dashboard_today_stats">Bugünkü İstatistikler</string>
+    <string name="dashboard_stat_label_min">MİN</string>
+    <string name="dashboard_stat_label_avg">ORT</string>
+    <string name="dashboard_stat_label_max">MAX</string>
+    <string name="dashboard_offline_title">%d kayıt gönderilemedi</string>
+    <string name="dashboard_offline_subtitle">İnternet bağlantısında otomatik gönderilecek</string>
+    <string name="dashboard_no_sensor_contact_title">Sensör Teması Yok</string>
+    <string name="dashboard_no_sensor_contact_message">Nabız ölçeri kolunuza takınız.\nSensör cildinize temas etmelidir.</string>
+    <string name="dashboard_signal_quality">Ölçüm Doğruluğu</string>
+    <string name="dashboard_quality_excellent">Mükemmel</string>
+    <string name="dashboard_quality_good">İyi</string>
+    <string name="dashboard_quality_fair">Orta</string>
+    <string name="dashboard_quality_poor">Düşük</string>
+    <string name="dashboard_quality_noise">Gürültü</string>
+    <string name="dashboard_quality_desc_excellent">Sinyal kalitesi çok iyi, veriler güvenilir</string>
+    <string name="dashboard_quality_desc_good">Sinyal kalitesi iyi</string>
+    <string name="dashboard_quality_desc_fair">Sinyal analiz ediliyor…</string>
+    <string name="dashboard_quality_desc_poor">Sinyal kalitesi düşük, sensörü kontrol edin</string>
+    <string name="dashboard_quality_desc_noise">Gürültü tespit edildi, veri gönderilmiyor</string>
+    <string name="dashboard_rr_intervals">RR Aralıkları</string>
+    <string name="dashboard_rr_avg">Ortalama: %dms</string>
+    <string name="dashboard_bluetooth_warning_title">Bluetooth Kapalı</string>
+    <string name="dashboard_bluetooth_warning_message">Nabız ölçere bağlanmak için lütfen\ntelefonunuzda Bluetooth\'u açınız</string>
+    <string name="dashboard_btn_enable_bluetooth">Bluetooth\'u Aç</string>
+
+    <!-- Time formatters -->
+    <string name="time_now">şimdi</string>
+    <string name="time_seconds">%ds</string>
+    <string name="time_minutes">%dm</string>
+    <string name="time_hours">%dh</string>
+    <string name="time_days">%dg</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Ayarlar</string>
+    <string name="settings_back">Geri</string>
+    <string name="settings_version">Heart Monitor v1.0.0</string>
+
+    <!-- Settings - Language -->
+    <string name="settings_language">Dil Ayarları</string>
+    <string name="settings_language_title">Uygulama Dili</string>
+    <string name="settings_language_system">Sistem Dili</string>
+    <string name="settings_language_desc">Uygulamanın görüntüleneceği dili seçin</string>
+
+    <!-- Settings - Device Mode -->
+    <string name="settings_mode_title">Cihaz Modu</string>
+    <string name="settings_mode_server">Server (Veri Toplama)</string>
+    <string name="settings_mode_server_desc">BLE ile nabız ölçerden veri alır ve API\'ye gönderir</string>
+    <string name="settings_mode_client">Client (İzleme)</string>
+    <string name="settings_mode_client_desc">WebView üzerinden canlı nabız verilerini izler</string>
+
+    <!-- Settings - Server Settings -->
+    <string name="settings_server_title">Sunucu Ayarları</string>
+    <string name="settings_api_url">API URL</string>
+    <string name="settings_api_url_desc">Verilerin gönderileceği/alınacağı sunucu adresi</string>
+    <string name="settings_api_url_hint">https://example.com/hr/api</string>
+    <string name="settings_api_key">API Key</string>
+    <string name="settings_api_key_desc">Sunucu ile kimlik doğrulama için kullanılan anahtar</string>
+    <string name="settings_api_key_hint">API anahtarınızı girin</string>
+
+    <!-- Settings - BLE Device -->
+    <string name="settings_ble_title">BLE Cihaz Ayarları</string>
+    <string name="settings_device_mac">Cihaz MAC Adresi</string>
+    <string name="settings_device_mac_desc">Bağlanılacak nabız ölçer cihazının MAC adresi</string>
+    <string name="settings_device_mac_hint">XX:XX:XX:XX:XX:XX</string>
+    <string name="settings_btn_scan">Tara</string>
+
+    <!-- Settings - Thresholds -->
+    <string name="settings_thresholds_title">Nabız Eşikleri</string>
+    <string name="settings_threshold_min">Minimum Nabız: %d BPM</string>
+    <string name="settings_threshold_min_desc">Bu değerin altındaki nabız \"Düşük\" olarak gösterilir</string>
+    <string name="settings_threshold_max">Maksimum Nabız: %d BPM</string>
+    <string name="settings_threshold_max_desc">Bu değerin üstündeki nabız \"Yüksek\" olarak gösterilir</string>
+    <string name="settings_threshold_low">Düşük</string>
+    <string name="settings_threshold_normal">Normal</string>
+    <string name="settings_threshold_high">Yüksek</string>
+
+    <!-- Settings - Alerts -->
+    <string name="settings_alerts_title">Uyarılar</string>
+    <string name="settings_alerts_enabled">Sesli Uyarı</string>
+    <string name="settings_alerts_enabled_desc">Eşikler aşıldığında sesli uyarı ver</string>
+    <string name="settings_alerts_vibration">Titreşim</string>
+    <string name="settings_alerts_vibration_desc">Uyarılarda telefonu titret</string>
+    <string name="settings_alerts_sound">Uyarı Sesi</string>
+    <string name="settings_alerts_sound_default">Varsayılan</string>
+
+    <!-- Settings - Service -->
+    <string name="settings_service_title">Servis</string>
+    <string name="settings_service_autostart">Otomatik Başlat</string>
+    <string name="settings_service_autostart_server">Telefon açılınca BLE servisini başlat</string>
+    <string name="settings_service_autostart_client">Telefon açılınca izleme servisini başlat</string>
+
+    <!-- Settings - Battery -->
+    <string name="settings_battery_title">Pil ve Performans</string>
+    <string name="settings_battery_optimization">Pil Optimizasyonu</string>
+    <string name="settings_battery_disabled">Devre dışı</string>
+    <string name="settings_battery_should_disable">Devre dışı bırakılmalı</string>
+    <string name="settings_oem_settings">Üretici Ayarları</string>
+    <string name="settings_oem_settings_desc">AutoStart ve arka plan izinleri</string>
+
+    <!-- Settings - Device Info -->
+    <string name="settings_device_title">Cihaz</string>
+    <string name="settings_device_connected">Bağlı Cihaz</string>
+
+    <!-- Client Monitor Screen -->
+    <string name="client_not_configured_title">Sunucu Ayarlanmadı</string>
+    <string name="client_not_configured_message">Canlı nabız verilerini izlemek için\nAyarlar sekmesinden sunucu URL\'sini yapılandırın.</string>
+    <string name="client_not_configured_hint">Ayarlar > Sunucu Ayarları > API URL</string>
+
+    <!-- Device Picker Dialog -->
+    <string name="device_picker_title">Yakındaki Cihazlar</string>
+    <string name="device_picker_close">Kapat</string>
+    <string name="device_picker_scanning">Taranıyor…</string>
+    <string name="device_picker_no_devices">Cihaz bulunamadı</string>
+    <string name="device_picker_start_hint">Tarama başlatmak için aşağıdaki butona basın</string>
+    <string name="device_picker_btn_stop">Durdur</string>
+    <string name="device_picker_btn_start">Taramaya Başla</string>
+    <string name="device_picker_signal_excellent">Çok İyi</string>
+    <string name="device_picker_signal_good">İyi</string>
+    <string name="device_picker_signal_fair">Orta</string>
+    <string name="device_picker_signal_weak">Zayıf</string>
+    <string name="device_picker_unknown_device">Bilinmeyen Cihaz</string>
+
+    <!-- OEM Setup Screen -->
+    <string name="oem_title">Kurulum</string>
+    <string name="oem_back">Geri</string>
+    <string name="oem_intro">Uygulamanın arka planda kesintisiz çalışması için aşağıdaki adımları tamamlayın:</string>
+    <string name="oem_btn_open_settings">Ayarları Aç</string>
+    <string name="oem_btn_done">Tamamlandı</string>
+    <string name="oem_steps_remaining">%d adım kaldı</string>
+    <string name="oem_step_completed">Tamamlandı</string>
+    <string name="oem_step_not_completed">Tamamlanmadı</string>
+    <string name="oem_why_title">Neden bu ayarlar gerekli?</string>
+    <string name="oem_why_message">Bazı telefon üreticileri pil ömrünü uzatmak için arka plan uygulamalarını otomatik olarak kapatır. Bu ayarlar, nabız izleme servisinin kesintisiz çalışmasını sağlar.</string>
+</resources>

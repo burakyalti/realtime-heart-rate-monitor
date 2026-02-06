@@ -1,0 +1,33 @@
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# IDE
+.idea/
+*.iml
+local.properties
+
+# Build outputs
+*.apk
+*.aab
+*.dex
+*.class
+
+# Kotlin
+.kotlin/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+# Claude config
+.claude/
+
+# Keep hr.apk in repo
+!hr.apk
+
+# Original screenshot files (copies in screenshots/ folder)
+photo_*.jpg

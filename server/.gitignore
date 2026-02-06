@@ -1,0 +1,9 @@
+# Credentials
+.env
+
+# APK binaries
+*.apk
+downloads/
+
+# Backups
+*.bak

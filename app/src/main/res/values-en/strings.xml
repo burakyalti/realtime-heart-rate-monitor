@@ -1,0 +1,191 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- App -->
+    <string name="app_name">Heart Monitor</string>
+
+    <!-- Notifications -->
+    <string name="notification_channel_name">Heart Rate Monitoring</string>
+    <string name="notification_channel_description">Background heart rate monitoring service</string>
+    <string name="notification_title">Monitoring Heart Rate</string>
+    <string name="notification_text_connecting">Connecting to device…</string>
+    <string name="notification_text_connected">Connected - %d BPM</string>
+    <string name="notification_text_disconnected">Disconnected - Reconnecting…</string>
+
+    <!-- Navigation -->
+    <string name="nav_live">Live</string>
+    <string name="nav_monitor">Monitor</string>
+    <string name="nav_settings">Settings</string>
+
+    <!-- Connection Status -->
+    <string name="status_connected">Connected</string>
+    <string name="status_connecting">Connecting…</string>
+    <string name="status_searching">Searching…</string>
+    <string name="status_disconnected">Disconnected</string>
+    <string name="status_bluetooth_off">Bluetooth Off</string>
+
+    <!-- Heart Rate Display -->
+    <string name="hr_no_connection">No Connection</string>
+    <string name="hr_status_low">Low</string>
+    <string name="hr_status_high">High</string>
+    <string name="hr_status_high_warning">High!</string>
+    <string name="hr_status_normal">Normal</string>
+    <string name="hr_unit_bpm">BPM</string>
+
+    <!-- Dashboard Screen -->
+    <string name="dashboard_title">Heart Rate Monitor</string>
+    <string name="dashboard_settings">Settings</string>
+    <string name="dashboard_bluetooth">Bluetooth</string>
+    <string name="dashboard_on">On</string>
+    <string name="dashboard_off">Off</string>
+    <string name="dashboard_bluetooth_on">On</string>
+    <string name="dashboard_bluetooth_off">Off</string>
+    <string name="dashboard_device">Device</string>
+    <string name="dashboard_device_label">Heart Rate Sensor</string>
+    <string name="dashboard_btn_stop">Stop</string>
+    <string name="dashboard_btn_start">Start</string>
+    <string name="dashboard_service_running">Service running</string>
+    <string name="dashboard_service_stopped">Service stopped</string>
+    <string name="dashboard_last_measurements">Last %d Measurements</string>
+    <string name="dashboard_stat_min">Min: %d</string>
+    <string name="dashboard_stat_avg">Avg: %d</string>
+    <string name="dashboard_stat_max">Max: %d</string>
+    <string name="dashboard_info_battery">BATTERY</string>
+    <string name="dashboard_info_contact">CONTACT</string>
+    <string name="dashboard_info_today">TODAY</string>
+    <string name="dashboard_info_last_update">AGO</string>
+    <string name="dashboard_contact_yes">Yes</string>
+    <string name="dashboard_contact_no">No</string>
+    <string name="dashboard_today_stats">Today\'s Statistics</string>
+    <string name="dashboard_stat_label_min">MIN</string>
+    <string name="dashboard_stat_label_avg">AVG</string>
+    <string name="dashboard_stat_label_max">MAX</string>
+    <string name="dashboard_offline_title">%d records pending</string>
+    <string name="dashboard_offline_subtitle">Will be sent when internet is available</string>
+    <string name="dashboard_no_sensor_contact_title">No Sensor Contact</string>
+    <string name="dashboard_no_sensor_contact_message">Please wear the heart rate sensor.\nThe sensor must touch your skin.</string>
+    <string name="dashboard_signal_quality">Measurement Accuracy</string>
+    <string name="dashboard_quality_excellent">Excellent</string>
+    <string name="dashboard_quality_good">Good</string>
+    <string name="dashboard_quality_fair">Fair</string>
+    <string name="dashboard_quality_poor">Poor</string>
+    <string name="dashboard_quality_noise">Noise</string>
+    <string name="dashboard_quality_desc_excellent">Signal quality is excellent, data is reliable</string>
+    <string name="dashboard_quality_desc_good">Signal quality is good</string>
+    <string name="dashboard_quality_desc_fair">Analyzing signal…</string>
+    <string name="dashboard_quality_desc_poor">Signal quality is poor, check sensor</string>
+    <string name="dashboard_quality_desc_noise">Noise detected, data not being sent</string>
+    <string name="dashboard_rr_intervals">RR Intervals</string>
+    <string name="dashboard_rr_avg">Average: %dms</string>
+    <string name="dashboard_bluetooth_warning_title">Bluetooth Off</string>
+    <string name="dashboard_bluetooth_warning_message">Please enable Bluetooth on your\nphone to connect to the heart rate sensor</string>
+    <string name="dashboard_btn_enable_bluetooth">Enable Bluetooth</string>
+
+    <!-- Time formatters -->
+    <string name="time_now">now</string>
+    <string name="time_seconds">%ds</string>
+    <string name="time_minutes">%dm</string>
+    <string name="time_hours">%dh</string>
+    <string name="time_days">%dd</string>
+
+    <!-- Settings Screen -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_back">Back</string>
+    <string name="settings_version">Heart Monitor v1.0.0</string>
+
+    <!-- Settings - Language -->
+    <string name="settings_language">Language Settings</string>
+    <string name="settings_language_title">App Language</string>
+    <string name="settings_language_system">System Language</string>
+    <string name="settings_language_desc">Select the language for the app</string>
+
+    <!-- Settings - Device Mode -->
+    <string name="settings_mode_title">Device Mode</string>
+    <string name="settings_mode_server">Server (Data Collection)</string>
+    <string name="settings_mode_server_desc">Collects data from BLE heart rate sensor and sends to API</string>
+    <string name="settings_mode_client">Client (Monitoring)</string>
+    <string name="settings_mode_client_desc">Monitors live heart rate data via WebView</string>
+
+    <!-- Settings - Server Settings -->
+    <string name="settings_server_title">Server Settings</string>
+    <string name="settings_api_url">API URL</string>
+    <string name="settings_api_url_desc">Server address to send/receive data</string>
+    <string name="settings_api_url_hint">https://example.com/hr/api</string>
+    <string name="settings_api_key">API Key</string>
+    <string name="settings_api_key_desc">Authentication key for the server</string>
+    <string name="settings_api_key_hint">Enter your API key</string>
+
+    <!-- Settings - BLE Device -->
+    <string name="settings_ble_title">BLE Device Settings</string>
+    <string name="settings_device_mac">Device MAC Address</string>
+    <string name="settings_device_mac_desc">MAC address of the heart rate sensor to connect</string>
+    <string name="settings_device_mac_hint">XX:XX:XX:XX:XX:XX</string>
+    <string name="settings_btn_scan">Scan</string>
+
+    <!-- Settings - Thresholds -->
+    <string name="settings_thresholds_title">Heart Rate Thresholds</string>
+    <string name="settings_threshold_min">Minimum Heart Rate: %d BPM</string>
+    <string name="settings_threshold_min_desc">Heart rate below this value is shown as \"Low\"</string>
+    <string name="settings_threshold_max">Maximum Heart Rate: %d BPM</string>
+    <string name="settings_threshold_max_desc">Heart rate above this value is shown as \"High\"</string>
+    <string name="settings_threshold_low">Low</string>
+    <string name="settings_threshold_normal">Normal</string>
+    <string name="settings_threshold_high">High</string>
+
+    <!-- Settings - Alerts -->
+    <string name="settings_alerts_title">Alerts</string>
+    <string name="settings_alerts_enabled">Sound Alert</string>
+    <string name="settings_alerts_enabled_desc">Play sound when thresholds are exceeded</string>
+    <string name="settings_alerts_vibration">Vibration</string>
+    <string name="settings_alerts_vibration_desc">Vibrate phone for alerts</string>
+    <string name="settings_alerts_sound">Alert Sound</string>
+    <string name="settings_alerts_sound_default">Default</string>
+
+    <!-- Settings - Service -->
+    <string name="settings_service_title">Service</string>
+    <string name="settings_service_autostart">Auto Start</string>
+    <string name="settings_service_autostart_server">Start BLE service when phone boots</string>
+    <string name="settings_service_autostart_client">Start monitoring service when phone boots</string>
+
+    <!-- Settings - Battery -->
+    <string name="settings_battery_title">Battery and Performance</string>
+    <string name="settings_battery_optimization">Battery Optimization</string>
+    <string name="settings_battery_disabled">Disabled</string>
+    <string name="settings_battery_should_disable">Should be disabled</string>
+    <string name="settings_oem_settings">Manufacturer Settings</string>
+    <string name="settings_oem_settings_desc">AutoStart and background permissions</string>
+
+    <!-- Settings - Device Info -->
+    <string name="settings_device_title">Device</string>
+    <string name="settings_device_connected">Connected Device</string>
+
+    <!-- Client Monitor Screen -->
+    <string name="client_not_configured_title">Server Not Configured</string>
+    <string name="client_not_configured_message">To monitor live heart rate data,\nconfigure the server URL in Settings.</string>
+    <string name="client_not_configured_hint">Settings > Server Settings > API URL</string>
+
+    <!-- Device Picker Dialog -->
+    <string name="device_picker_title">Nearby Devices</string>
+    <string name="device_picker_close">Close</string>
+    <string name="device_picker_scanning">Scanning…</string>
+    <string name="device_picker_no_devices">No devices found</string>
+    <string name="device_picker_start_hint">Press the button below to start scanning</string>
+    <string name="device_picker_btn_stop">Stop</string>
+    <string name="device_picker_btn_start">Start Scanning</string>
+    <string name="device_picker_signal_excellent">Excellent</string>
+    <string name="device_picker_signal_good">Good</string>
+    <string name="device_picker_signal_fair">Fair</string>
+    <string name="device_picker_signal_weak">Weak</string>
+    <string name="device_picker_unknown_device">Unknown Device</string>
+
+    <!-- OEM Setup Screen -->
+    <string name="oem_title">Setup</string>
+    <string name="oem_back">Back</string>
+    <string name="oem_intro">Complete the following steps for the app to run continuously in the background:</string>
+    <string name="oem_btn_open_settings">Open Settings</string>
+    <string name="oem_btn_done">Done</string>
+    <string name="oem_steps_remaining">%d steps remaining</string>
+    <string name="oem_step_completed">Completed</string>
+    <string name="oem_step_not_completed">Not completed</string>
+    <string name="oem_why_title">Why are these settings needed?</string>
+    <string name="oem_why_message">Some phone manufacturers automatically close background apps to extend battery life. These settings ensure the heart rate monitoring service runs continuously.</string>
+</resources>
