@@ -3,6 +3,7 @@ package net.hrapp.hr.ui.screens
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -63,6 +64,12 @@ fun MainScreen(
     onAlertsEnabledChange: (Boolean) -> Unit,
     onAlertVibrationChange: (Boolean) -> Unit,
     onAlertSoundClick: () -> Unit,
+    alertWindowSeconds: Int,
+    alertMinExceedCount: Int,
+    alertCooldownMinutes: Int,
+    onAlertWindowChange: (Int) -> Unit,
+    onAlertMinExceedCountChange: (Int) -> Unit,
+    onAlertCooldownChange: (Int) -> Unit,
     onApiUrlChange: (String) -> Unit,
     onApiKeyChange: (String) -> Unit,
     onDeviceMacChange: (String) -> Unit,
@@ -72,6 +79,8 @@ fun MainScreen(
     isDiscovering: Boolean = false,
     onStartDiscovery: () -> Unit = {},
     onStopDiscovery: () -> Unit = {},
+    navigateToSettings: Boolean = false,
+    onNavigatedToSettings: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     // Başlangıç tab'ı: Server modda Live, Client modda Monitor
@@ -81,6 +90,14 @@ fun MainScreen(
     // Mod değiştiğinde route'u güncelle
     if (!isServerMode && currentRoute == BottomNavItem.Live.route) {
         currentRoute = BottomNavItem.Monitor.route
+    }
+
+    // Settings'e yönlendirme isteği
+    LaunchedEffect(navigateToSettings) {
+        if (navigateToSettings) {
+            currentRoute = BottomNavItem.Settings.route
+            onNavigatedToSettings()
+        }
     }
 
     Scaffold(
@@ -155,6 +172,12 @@ fun MainScreen(
                     onAlertsEnabledChange = onAlertsEnabledChange,
                     onAlertVibrationChange = onAlertVibrationChange,
                     onAlertSoundClick = onAlertSoundClick,
+                    alertWindowSeconds = alertWindowSeconds,
+                    alertMinExceedCount = alertMinExceedCount,
+                    alertCooldownMinutes = alertCooldownMinutes,
+                    onAlertWindowChange = onAlertWindowChange,
+                    onAlertMinExceedCountChange = onAlertMinExceedCountChange,
+                    onAlertCooldownChange = onAlertCooldownChange,
                     onApiUrlChange = onApiUrlChange,
                     onApiKeyChange = onApiKeyChange,
                     onDeviceMacChange = onDeviceMacChange,

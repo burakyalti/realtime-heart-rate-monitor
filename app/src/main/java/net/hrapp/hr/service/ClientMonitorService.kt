@@ -70,7 +70,7 @@ class ClientMonitorService : Service() {
                 return START_NOT_STICKY
             }
             else -> {
-                startForeground(NOTIFICATION_ID, createNotification("İzleme başlatılıyor..."))
+                startForeground(NOTIFICATION_ID, createNotification(getString(R.string.client_service_starting)))
                 startMonitoring()
             }
         }
@@ -123,6 +123,13 @@ class ClientMonitorService : Service() {
             return
         }
 
+        // Diğer servisi durdur (çakışma önleme)
+        try {
+            stopService(Intent(this, HeartMonitorService::class.java))
+        } catch (e: Exception) {
+            Log.d(TAG, "HeartMonitorService already stopped")
+        }
+
         // Initialize ApiClient with saved URL
         ApiClient.setBaseUrl(prefs.apiUrl)
 
@@ -139,7 +146,7 @@ class ClientMonitorService : Service() {
                             lastHeartRate = heartRate
                             Log.d(TAG, "Got heart rate: $heartRate BPM")
 
-                            updateNotification("Nabız: $heartRate BPM")
+                            updateNotification(getString(R.string.client_service_hr, heartRate))
 
                             // Check thresholds and alert
                             alertManager.checkAndAlert(
@@ -149,11 +156,11 @@ class ClientMonitorService : Service() {
                             )
                         } else {
                             Log.d(TAG, "No heart rate data available")
-                            updateNotification("Veri bekleniyor...")
+                            updateNotification(getString(R.string.client_service_waiting))
                         }
                     }.onFailure { e ->
                         Log.e(TAG, "Failed to get heart rate: ${e.message}")
-                        updateNotification("Bağlantı hatası")
+                        updateNotification(getString(R.string.client_service_error))
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "Polling error: ${e.message}", e)
@@ -180,11 +187,11 @@ class ClientMonitorService : Service() {
         )
 
         return NotificationCompat.Builder(this, HeartMonitorApp.NOTIFICATION_CHANNEL_ID)
-            .setContentTitle("Nabız İzleme")
+            .setContentTitle(getString(R.string.client_service_title))
             .setContentText(text)
             .setSmallIcon(android.R.drawable.ic_menu_view)
             .setContentIntent(pendingIntent)
-            .addAction(android.R.drawable.ic_media_pause, "Durdur", stopIntent)
+            .addAction(android.R.drawable.ic_media_pause, getString(R.string.dashboard_btn_stop), stopIntent)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setPriority(NotificationCompat.PRIORITY_LOW)

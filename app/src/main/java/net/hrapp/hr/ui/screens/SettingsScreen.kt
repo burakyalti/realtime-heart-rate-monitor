@@ -273,6 +273,12 @@ fun SettingsScreenContent(
     onAlertsEnabledChange: (Boolean) -> Unit,
     onAlertVibrationChange: (Boolean) -> Unit,
     onAlertSoundClick: () -> Unit,
+    alertWindowSeconds: Int,
+    alertMinExceedCount: Int,
+    alertCooldownMinutes: Int,
+    onAlertWindowChange: (Int) -> Unit,
+    onAlertMinExceedCountChange: (Int) -> Unit,
+    onAlertCooldownChange: (Int) -> Unit,
     onApiUrlChange: (String) -> Unit,
     onApiKeyChange: (String) -> Unit,
     onDeviceMacChange: (String) -> Unit,
@@ -287,6 +293,9 @@ fun SettingsScreenContent(
     // Local state for sliders
     var minSliderValue by remember(minThreshold) { mutableFloatStateOf(minThreshold.toFloat()) }
     var maxSliderValue by remember(maxThreshold) { mutableFloatStateOf(maxThreshold.toFloat()) }
+    // Local state for alert window sliders
+    var windowSliderValue by remember(alertWindowSeconds) { mutableFloatStateOf(alertWindowSeconds.toFloat()) }
+    var exceedSliderValue by remember(alertMinExceedCount) { mutableFloatStateOf(alertMinExceedCount.toFloat()) }
     // Local state for API URL editing
     var apiUrlText by remember(apiUrl) { mutableStateOf(apiUrl) }
     // Local state for API Key editing
@@ -903,6 +912,162 @@ fun SettingsScreenContent(
                             color = HeartMonitorColors.TextMuted
                         )
                     }
+                }
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    color = HeartMonitorColors.DarkBackground
+                )
+
+                // Kontrol Penceresi (X saniye)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    Text(
+                        text = if (windowSliderValue.toInt() == 0)
+                            stringResource(R.string.settings_alert_window_instant)
+                        else
+                            stringResource(R.string.settings_alert_window, windowSliderValue.toInt()),
+                        fontWeight = FontWeight.Medium,
+                        color = if (alertsEnabled) HeartMonitorColors.TextPrimary else HeartMonitorColors.TextMuted
+                    )
+                    Text(
+                        text = stringResource(R.string.settings_alert_window_desc),
+                        fontSize = 12.sp,
+                        color = HeartMonitorColors.TextMuted
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Slider(
+                        value = windowSliderValue,
+                        onValueChange = { windowSliderValue = it },
+                        onValueChangeFinished = {
+                            onAlertWindowChange(windowSliderValue.toInt())
+                        },
+                        valueRange = 0f..60f,
+                        steps = 11, // 0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60
+                        enabled = alertsEnabled,
+                        colors = SliderDefaults.colors(
+                            thumbColor = HeartMonitorColors.HeartPink,
+                            activeTrackColor = HeartMonitorColors.HeartPink
+                        )
+                    )
+                }
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    color = HeartMonitorColors.DarkBackground
+                )
+
+                // Aşım Sayısı (Y)
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.settings_alert_exceed_count, exceedSliderValue.toInt()),
+                        fontWeight = FontWeight.Medium,
+                        color = if (alertsEnabled) HeartMonitorColors.TextPrimary else HeartMonitorColors.TextMuted
+                    )
+                    Text(
+                        text = stringResource(R.string.settings_alert_exceed_count_desc),
+                        fontSize = 12.sp,
+                        color = HeartMonitorColors.TextMuted
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Slider(
+                        value = exceedSliderValue,
+                        onValueChange = { exceedSliderValue = it },
+                        onValueChangeFinished = {
+                            onAlertMinExceedCountChange(exceedSliderValue.toInt())
+                        },
+                        valueRange = 1f..10f,
+                        steps = 8, // 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
+                        enabled = alertsEnabled,
+                        colors = SliderDefaults.colors(
+                            thumbColor = HeartMonitorColors.HeartPink,
+                            activeTrackColor = HeartMonitorColors.HeartPink
+                        )
+                    )
+                }
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    color = HeartMonitorColors.DarkBackground
+                )
+
+                // Cooldown Süresi
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.settings_alert_cooldown),
+                        fontWeight = FontWeight.Medium,
+                        color = if (alertsEnabled) HeartMonitorColors.TextPrimary else HeartMonitorColors.TextMuted
+                    )
+                    Text(
+                        text = stringResource(R.string.settings_alert_cooldown_desc),
+                        fontSize = 12.sp,
+                        color = HeartMonitorColors.TextMuted
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    val cooldownOptions = listOf(1, 3, 5, 10, 30, 60)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        cooldownOptions.forEach { minutes ->
+                            val isSelected = alertCooldownMinutes == minutes
+                            Button(
+                                onClick = { onAlertCooldownChange(minutes) },
+                                enabled = alertsEnabled,
+                                modifier = Modifier.weight(1f),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = if (isSelected) HeartMonitorColors.HeartPink else HeartMonitorColors.DarkBackground,
+                                    contentColor = if (isSelected) Color.White else HeartMonitorColors.TextMuted,
+                                    disabledContainerColor = HeartMonitorColors.DarkBackground,
+                                    disabledContentColor = HeartMonitorColors.TextMuted.copy(alpha = 0.5f)
+                                ),
+                                contentPadding = androidx.compose.foundation.layout.PaddingValues(horizontal = 4.dp, vertical = 4.dp)
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.settings_alert_cooldown_min, minutes),
+                                    fontSize = 11.sp
+                                )
+                            }
+                        }
+                    }
+                }
+
+                HorizontalDivider(
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                    color = HeartMonitorColors.DarkBackground
+                )
+
+                // Özet
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                        .background(
+                            color = HeartMonitorColors.DarkBackground,
+                            shape = MaterialTheme.shapes.small
+                        )
+                        .padding(12.dp)
+                ) {
+                    Text(
+                        text = if (alertWindowSeconds == 0)
+                            stringResource(R.string.settings_alert_summary_instant, alertCooldownMinutes)
+                        else
+                            stringResource(R.string.settings_alert_summary, alertWindowSeconds, alertMinExceedCount, alertCooldownMinutes),
+                        fontSize = 12.sp,
+                        color = HeartMonitorColors.TextMuted
+                    )
                 }
             }
         }

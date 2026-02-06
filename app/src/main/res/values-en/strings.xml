@@ -139,6 +139,31 @@
     <string name="settings_alerts_vibration_desc">Vibrate phone for alerts</string>
     <string name="settings_alerts_sound">Alert Sound</string>
     <string name="settings_alerts_sound_default">Default</string>
+    <string name="settings_alert_window">Check Window: %d seconds</string>
+    <string name="settings_alert_window_instant">Check Window: Instant</string>
+    <string name="settings_alert_window_desc">Checks readings from the last X seconds</string>
+    <string name="settings_alert_exceed_count">Exceed Count: %d</string>
+    <string name="settings_alert_exceed_count_desc">Minimum threshold exceedances needed for alert</string>
+    <string name="settings_alert_cooldown">Cooldown Period</string>
+    <string name="settings_alert_cooldown_desc">Minimum wait time between alerts</string>
+    <string name="settings_alert_cooldown_min">%d min</string>
+    <string name="settings_alert_summary">Alert when threshold exceeded %2$d times in last %1$d seconds.\nWait at least %3$d minutes between alerts.</string>
+    <string name="settings_alert_summary_instant">Alert instantly on every threshold exceedance.\nWait at least %d minutes between alerts.</string>
+
+    <!-- Alert Notifications -->
+    <string name="alert_low_title">Low Heart Rate Alert</string>
+    <string name="alert_high_title">High Heart Rate Alert</string>
+    <string name="alert_low_message">Heart rate %1$d BPM - Below threshold (%2$d BPM)!</string>
+    <string name="alert_high_message">Heart rate %1$d BPM - Above threshold (%2$d BPM)!</string>
+    <string name="alert_channel_name">Heart Rate Alerts</string>
+    <string name="alert_channel_desc">Alerts when heart rate thresholds are exceeded</string>
+
+    <!-- Client Service Notifications -->
+    <string name="client_service_title">Heart Rate Monitor</string>
+    <string name="client_service_starting">Starting monitoring…</string>
+    <string name="client_service_hr">Heart Rate: %d BPM</string>
+    <string name="client_service_waiting">Waiting for data…</string>
+    <string name="client_service_error">Connection error</string>
 
     <!-- Settings - Service -->
     <string name="settings_service_title">Service</string>
@@ -188,4 +213,10 @@
     <string name="oem_step_not_completed">Not completed</string>
     <string name="oem_why_title">Why are these settings needed?</string>
     <string name="oem_why_message">Some phone manufacturers automatically close background apps to extend battery life. These settings ensure the heart rate monitoring service runs continuously.</string>
+
+    <!-- Auto-start Prompt -->
+    <string name="autostart_prompt_title">Auto Start</string>
+    <string name="autostart_prompt_message">Enable auto-start in settings to keep the app running continuously in the background.\n\nWithout this setting, the app will not start automatically when the phone restarts.</string>
+    <string name="autostart_prompt_settings">Go to Settings</string>
+    <string name="autostart_prompt_later">Later</string>
 </resources>

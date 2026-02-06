@@ -131,32 +131,65 @@ try {
         $heartRate,
     ]);
 
-    // Alarm kontrolü
+    // Akıllı alarm kontrolü (pencereli + cooldown)
     $alertType = null;
     $alertMessage = null;
+    $windowSeconds = ALERT_WINDOW_SECONDS;
+    $minExceedCount = ALERT_MIN_EXCEED_COUNT;
+    $cooldownMinutes = ALERT_COOLDOWN_MINUTES;
+    $deviceIdUpper = strtoupper($deviceId);
 
-    if ($heartRate < ALERT_LOW_HR) {
-        $alertType = 'low';
-        $alertMessage = "Nabız çok düşük: {$heartRate} BPM";
-    } elseif ($heartRate > ALERT_HIGH_HR) {
-        $alertType = 'high';
-        $alertMessage = "Nabız çok yüksek: {$heartRate} BPM";
+    if ($windowSeconds == 0) {
+        // Anlık kontrol - tek okuma ile karar ver
+        if ($heartRate < ALERT_LOW_HR) {
+            $alertType = 'low';
+            $alertMessage = "Nabız çok düşük: {$heartRate} BPM";
+        } elseif ($heartRate > ALERT_HIGH_HR) {
+            $alertType = 'high';
+            $alertMessage = "Nabız çok yüksek: {$heartRate} BPM";
+        }
+    } else {
+        // Pencereli kontrol - son X saniyedeki aşımları say
+        $windowStart = date('Y-m-d H:i:s', time() - $windowSeconds);
+
+        // Yüksek nabız aşım sayısı
+        $stmtHigh = $pdo->prepare("SELECT COUNT(*) FROM heart_rate_logs
+            WHERE device_id = ? AND recorded_at >= ? AND heart_rate > ?");
+        $stmtHigh->execute([$deviceIdUpper, $windowStart, ALERT_HIGH_HR]);
+        $highExceedCount = (int)$stmtHigh->fetchColumn();
+
+        // Düşük nabız aşım sayısı
+        $stmtLow = $pdo->prepare("SELECT COUNT(*) FROM heart_rate_logs
+            WHERE device_id = ? AND recorded_at >= ? AND heart_rate < ?");
+        $stmtLow->execute([$deviceIdUpper, $windowStart, ALERT_LOW_HR]);
+        $lowExceedCount = (int)$stmtLow->fetchColumn();
+
+        if ($lowExceedCount >= $minExceedCount) {
+            $alertType = 'low';
+            $alertMessage = "Son {$windowSeconds}s'de {$lowExceedCount} düşük nabız: {$heartRate} BPM";
+        } elseif ($highExceedCount >= $minExceedCount) {
+            $alertType = 'high';
+            $alertMessage = "Son {$windowSeconds}s'de {$highExceedCount} yüksek nabız: {$heartRate} BPM";
+        }
     }
 
     if ($alertType) {
-        // Son 5 dakikada aynı tipte alarm var mı kontrol et (spam önleme)
+        // Cooldown kontrolü - son X dakikada aynı tipte alarm var mı
         $sqlAlertCheck = "SELECT id FROM heart_rate_alerts
                           WHERE device_id = ? AND alert_type = ?
-                          AND created_at > DATE_SUB(NOW(), INTERVAL 5 MINUTE)
+                          AND created_at > DATE_SUB(NOW(), INTERVAL ? MINUTE)
                           LIMIT 1";
         $stmtCheck = $pdo->prepare($sqlAlertCheck);
-        $stmtCheck->execute([strtoupper($deviceId), $alertType]);
+        $stmtCheck->execute([$deviceIdUpper, $alertType, $cooldownMinutes]);
 
         if (!$stmtCheck->fetch()) {
             // Yeni alarm oluştur
             $sqlAlert = "INSERT INTO heart_rate_alerts (device_id, alert_type, heart_rate, message) VALUES (?, ?, ?, ?)";
             $stmtAlert = $pdo->prepare($sqlAlert);
-            $stmtAlert->execute([strtoupper($deviceId), $alertType, $heartRate, $alertMessage]);
+            $stmtAlert->execute([$deviceIdUpper, $alertType, $heartRate, $alertMessage]);
+        } else {
+            // Cooldown içinde - alert tetiklenmedi
+            $alertType = null;
         }
     }
 

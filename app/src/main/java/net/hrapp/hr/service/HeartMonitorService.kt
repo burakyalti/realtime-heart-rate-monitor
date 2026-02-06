@@ -380,6 +380,13 @@ class HeartMonitorService : Service() {
             return
         }
 
+        // Diğer servisi durdur (çakışma önleme)
+        try {
+            stopService(Intent(this, ClientMonitorService::class.java))
+        } catch (e: Exception) {
+            Log.d(TAG, "ClientMonitorService already stopped")
+        }
+
         Log.d(TAG, "Starting monitoring...")
         isMonitoringStarted = true
 

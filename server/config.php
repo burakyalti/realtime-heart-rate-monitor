@@ -33,6 +33,11 @@ define('ALERT_LOW_HR', 50);    // 50 BPM altı alarm
 define('ALERT_HIGH_HR', 120);  // 120 BPM üstü alarm
 define('ALERT_NO_SIGNAL_MINUTES', 5);  // 5 dakika veri gelmezse alarm
 
+// Akıllı bildirim ayarları
+define('ALERT_WINDOW_SECONDS', 10);     // Son kaç saniyeyi kontrol et (0 = anlık)
+define('ALERT_MIN_EXCEED_COUNT', 1);    // Kaç kere eşik aşılmalı
+define('ALERT_COOLDOWN_MINUTES', 1);    // Bildirimler arası bekleme (dakika)
+
 // Rate limiting
 define('MAX_REQUESTS_PER_MINUTE', 120);  // Dakikada max istek (saniyede 2)
 

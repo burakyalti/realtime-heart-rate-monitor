@@ -20,8 +20,12 @@ class PreferencesManager(context: Context) {
         private const val KEY_ALERTS_ENABLED = "alerts_enabled"
         private const val KEY_ALERT_SOUND_URI = "alert_sound_uri"
         private const val KEY_ALERT_VIBRATION = "alert_vibration"
+        private const val KEY_ALERT_WINDOW_SECONDS = "alert_window_seconds"
+        private const val KEY_ALERT_MIN_EXCEED_COUNT = "alert_min_exceed_count"
+        private const val KEY_ALERT_COOLDOWN_MINUTES = "alert_cooldown_minutes"
         private const val KEY_API_KEY = "api_key"
         private const val KEY_APP_LANGUAGE = "app_language"
+        private const val KEY_HAS_SEEN_AUTOSTART_PROMPT = "has_seen_autostart_prompt"
 
         private const val DEFAULT_API_URL = "https://example.com/hr/api"
         private const val DEFAULT_LANGUAGE = "system"
@@ -108,6 +112,26 @@ class PreferencesManager(context: Context) {
     var alertVibrationEnabled: Boolean
         get() = prefs.getBoolean(KEY_ALERT_VIBRATION, true)
         set(value) = prefs.edit { putBoolean(KEY_ALERT_VIBRATION, value) }
+
+    // Bildirim penceresi - son X saniyedeki okumaları kontrol et (0 = anlık)
+    var alertWindowSeconds: Int
+        get() = prefs.getInt(KEY_ALERT_WINDOW_SECONDS, 10)
+        set(value) = prefs.edit { putInt(KEY_ALERT_WINDOW_SECONDS, value) }
+
+    // Minimum eşik aşım sayısı - Y adet aşım gerekli
+    var alertMinExceedCount: Int
+        get() = prefs.getInt(KEY_ALERT_MIN_EXCEED_COUNT, 1)
+        set(value) = prefs.edit { putInt(KEY_ALERT_MIN_EXCEED_COUNT, value) }
+
+    // Cooldown süresi (dakika)
+    var alertCooldownMinutes: Int
+        get() = prefs.getInt(KEY_ALERT_COOLDOWN_MINUTES, 1)
+        set(value) = prefs.edit { putInt(KEY_ALERT_COOLDOWN_MINUTES, value) }
+
+    // İlk kurulumda otomatik başlatma uyarısı gösterildi mi
+    var hasSeenAutoStartPrompt: Boolean
+        get() = prefs.getBoolean(KEY_HAS_SEEN_AUTOSTART_PROMPT, false)
+        set(value) = prefs.edit { putBoolean(KEY_HAS_SEEN_AUTOSTART_PROMPT, value) }
 
     // Dil tercihi: "system", "tr", "en"
     var appLanguage: String

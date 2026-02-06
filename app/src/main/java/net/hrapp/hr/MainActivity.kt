@@ -170,6 +170,9 @@ class MainActivity : ComponentActivity() {
         // Alert settings state
         var alertsEnabled by remember { mutableStateOf(prefs.alertsEnabled) }
         var alertVibrationEnabled by remember { mutableStateOf(prefs.alertVibrationEnabled) }
+        var alertWindowSeconds by remember { mutableIntStateOf(prefs.alertWindowSeconds) }
+        var alertMinExceedCount by remember { mutableIntStateOf(prefs.alertMinExceedCount) }
+        var alertCooldownMinutes by remember { mutableIntStateOf(prefs.alertCooldownMinutes) }
         var alertSoundName by remember { mutableStateOf(
             if (prefs.alertSoundUri.isEmpty()) "Varsayılan" else "Özel Ses"
         ) }
@@ -180,6 +183,10 @@ class MainActivity : ComponentActivity() {
 
         // Language state
         var currentLanguage by remember { mutableStateOf(prefs.appLanguage) }
+
+        // Auto-start prompt state
+        var showAutoStartPrompt by remember { mutableStateOf(false) }
+        var navigateToSettings by remember { mutableStateOf(false) }
 
         // Initialize ApiClient with saved URL and API Key
         remember {
@@ -446,10 +453,13 @@ class MainActivity : ComponentActivity() {
                     prefs.deviceMode = if (newIsServerMode) PreferencesManager.MODE_SERVER else PreferencesManager.MODE_CLIENT
                     isServerMode = newIsServerMode
 
+                    val nm = getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
+
                     if (newIsServerMode) {
                         // Server moduna geçildi
                         // Client servisini durdur
                         stopClientMonitorService()
+                        nm.cancel(2002) // ClientMonitorService NOTIFICATION_ID
 
                         // Server servisini başlat
                         if (prefs.isServiceEnabled && !isServiceRunning) {
@@ -459,6 +469,7 @@ class MainActivity : ComponentActivity() {
                     } else {
                         // Client moduna geçildi
                         // Server servisini durdur
+                        nm.cancel(1001) // HeartMonitorService NOTIFICATION_ID
                         if (isServiceRunning) {
                             stopHeartMonitorService()
                             isServiceRunning = false
@@ -502,6 +513,21 @@ class MainActivity : ComponentActivity() {
                 onAlertVibrationChange = { enabled ->
                     prefs.alertVibrationEnabled = enabled
                     alertVibrationEnabled = enabled
+                },
+                alertWindowSeconds = alertWindowSeconds,
+                alertMinExceedCount = alertMinExceedCount,
+                alertCooldownMinutes = alertCooldownMinutes,
+                onAlertWindowChange = { value ->
+                    prefs.alertWindowSeconds = value
+                    alertWindowSeconds = value
+                },
+                onAlertMinExceedCountChange = { value ->
+                    prefs.alertMinExceedCount = value
+                    alertMinExceedCount = value
+                },
+                onAlertCooldownChange = { value ->
+                    prefs.alertCooldownMinutes = value
+                    alertCooldownMinutes = value
                 },
                 onAlertSoundClick = {
                     onSoundSelected = { uri, name ->
@@ -559,7 +585,9 @@ class MainActivity : ComponentActivity() {
                 },
                 onStopDiscovery = {
                     bleManager.stopDeviceDiscovery()
-                }
+                },
+                navigateToSettings = navigateToSettings,
+                onNavigatedToSettings = { navigateToSettings = false }
             )
 
             "oem_setup" -> OemSetupScreen(
@@ -570,6 +598,49 @@ class MainActivity : ComponentActivity() {
                 onComplete = {
                     prefs.isOemSetupShown = true
                     currentScreen = "main"
+                }
+            )
+        }
+
+        // İlk kurulumda otomatik başlatma uyarısı
+        if (!prefs.hasSeenAutoStartPrompt && !prefs.isServiceEnabled) {
+            showAutoStartPrompt = true
+            prefs.hasSeenAutoStartPrompt = true
+        }
+
+        if (showAutoStartPrompt) {
+            androidx.compose.material3.AlertDialog(
+                onDismissRequest = { showAutoStartPrompt = false },
+                title = {
+                    androidx.compose.material3.Text(
+                        text = context.getString(R.string.autostart_prompt_title)
+                    )
+                },
+                text = {
+                    androidx.compose.material3.Text(
+                        text = context.getString(R.string.autostart_prompt_message)
+                    )
+                },
+                confirmButton = {
+                    androidx.compose.material3.TextButton(
+                        onClick = {
+                            showAutoStartPrompt = false
+                            navigateToSettings = true
+                        }
+                    ) {
+                        androidx.compose.material3.Text(
+                            text = context.getString(R.string.autostart_prompt_settings)
+                        )
+                    }
+                },
+                dismissButton = {
+                    androidx.compose.material3.TextButton(
+                        onClick = { showAutoStartPrompt = false }
+                    ) {
+                        androidx.compose.material3.Text(
+                            text = context.getString(R.string.autostart_prompt_later)
+                        )
+                    }
                 }
             )
         }

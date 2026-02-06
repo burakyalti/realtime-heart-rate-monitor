@@ -139,6 +139,31 @@
     <string name="settings_alerts_vibration_desc">Uyarılarda telefonu titret</string>
     <string name="settings_alerts_sound">Uyarı Sesi</string>
     <string name="settings_alerts_sound_default">Varsayılan</string>
+    <string name="settings_alert_window">Kontrol Penceresi: %d saniye</string>
+    <string name="settings_alert_window_instant">Kontrol Penceresi: Anlık</string>
+    <string name="settings_alert_window_desc">Son X saniyedeki okumaları kontrol eder</string>
+    <string name="settings_alert_exceed_count">Aşım Sayısı: %d</string>
+    <string name="settings_alert_exceed_count_desc">Bildirim için gereken minimum eşik aşım sayısı</string>
+    <string name="settings_alert_cooldown">Bekleme Süresi</string>
+    <string name="settings_alert_cooldown_desc">Bildirimler arası minimum bekleme süresi</string>
+    <string name="settings_alert_cooldown_min">%d dk</string>
+    <string name="settings_alert_summary">Son %1$d saniyede %2$d kere eşik aşılırsa bildirim ver.\nBildirimler arası en az %3$d dakika bekle.</string>
+    <string name="settings_alert_summary_instant">Her eşik aşımında anlık bildirim ver.\nBildirimler arası en az %d dakika bekle.</string>
+
+    <!-- Alert Notifications -->
+    <string name="alert_low_title">Düşük Nabız Uyarısı</string>
+    <string name="alert_high_title">Yüksek Nabız Uyarısı</string>
+    <string name="alert_low_message">Nabız %1$d BPM - Eşik değerin (%2$d BPM) altında!</string>
+    <string name="alert_high_message">Nabız %1$d BPM - Eşik değerin (%2$d BPM) üstünde!</string>
+    <string name="alert_channel_name">Nabız Uyarıları</string>
+    <string name="alert_channel_desc">Nabız eşikleri aşıldığında uyarı verir</string>
+
+    <!-- Client Service Notifications -->
+    <string name="client_service_title">Nabız İzleme</string>
+    <string name="client_service_starting">İzleme başlatılıyor…</string>
+    <string name="client_service_hr">Nabız: %d BPM</string>
+    <string name="client_service_waiting">Veri bekleniyor…</string>
+    <string name="client_service_error">Bağlantı hatası</string>
 
     <!-- Settings - Service -->
     <string name="settings_service_title">Servis</string>
@@ -188,4 +213,10 @@
     <string name="oem_step_not_completed">Tamamlanmadı</string>
     <string name="oem_why_title">Neden bu ayarlar gerekli?</string>
     <string name="oem_why_message">Bazı telefon üreticileri pil ömrünü uzatmak için arka plan uygulamalarını otomatik olarak kapatır. Bu ayarlar, nabız izleme servisinin kesintisiz çalışmasını sağlar.</string>
+
+    <!-- Auto-start Prompt -->
+    <string name="autostart_prompt_title">Otomatik Başlatma</string>
+    <string name="autostart_prompt_message">Uygulamanın arka planda sürekli çalışabilmesi için otomatik başlatma özelliğini ayarlardan etkinleştirin.\n\nBu ayar açılmadığında uygulama telefon yeniden başlatıldığında otomatik olarak çalışmaz.</string>
+    <string name="autostart_prompt_settings">Ayarlara Git</string>
+    <string name="autostart_prompt_later">Sonra</string>
 </resources>

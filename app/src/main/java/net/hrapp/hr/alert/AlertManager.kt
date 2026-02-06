@@ -24,9 +24,7 @@ class AlertManager(private val context: Context) {
         private const val TAG = "AlertManager"
         const val ALERT_CHANNEL_ID = "heart_rate_alert_channel"
         private const val ALERT_NOTIFICATION_ID = 2001
-
-        // Cooldown - aynı alert için minimum bekleme süresi (30 saniye)
-        private const val ALERT_COOLDOWN_MS = 30_000L
+        private const val MAX_BUFFER_SIZE = 120
     }
 
     private val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -34,6 +32,10 @@ class AlertManager(private val context: Context) {
 
     private var lastLowAlertTime = 0L
     private var lastHighAlertTime = 0L
+
+    // Zaman penceresi için timestamped okuma buffer'ı
+    private data class TimestampedReading(val heartRate: Int, val timestamp: Long)
+    private val readingBuffer = mutableListOf<TimestampedReading>()
 
     init {
         createAlertChannel()
@@ -49,10 +51,10 @@ class AlertManager(private val context: Context) {
 
         val channel = NotificationChannel(
             ALERT_CHANNEL_ID,
-            "Nabız Uyarıları",
+            context.getString(R.string.alert_channel_name),
             NotificationManager.IMPORTANCE_HIGH
         ).apply {
-            description = "Nabız eşikleri aşıldığında uyarı verir"
+            description = context.getString(R.string.alert_channel_desc)
             enableVibration(true)
             vibrationPattern = longArrayOf(0, 500, 200, 500)
             setSound(soundUri, audioAttributes)
@@ -63,7 +65,6 @@ class AlertManager(private val context: Context) {
     }
 
     fun updateAlertSound() {
-        // Kanal ses ayarını güncellemek için kanalı yeniden oluştur
         createAlertChannel()
     }
 
@@ -71,27 +72,73 @@ class AlertManager(private val context: Context) {
         if (!prefs.alertsEnabled) return
 
         val now = System.currentTimeMillis()
+        val windowSeconds = prefs.alertWindowSeconds
+        val minExceedCount = prefs.alertMinExceedCount
+        val cooldownMs = prefs.alertCooldownMinutes * 60 * 1000L
 
-        when {
-            heartRate < minThreshold -> {
-                if (now - lastLowAlertTime > ALERT_COOLDOWN_MS) {
-                    triggerAlert(
-                        title = "Düşük Nabız Uyarısı",
-                        message = "Nabız $heartRate BPM - Eşik değerin ($minThreshold BPM) altında!",
-                        isLow = true
-                    )
-                    lastLowAlertTime = now
-                }
+        Log.d(TAG, "checkAndAlert: HR=$heartRate, thresholds=[$minThreshold-$maxThreshold], " +
+            "window=${windowSeconds}s, minExceed=$minExceedCount, cooldown=${prefs.alertCooldownMinutes}min")
+
+        if (windowSeconds == 0) {
+            // Anlık kontrol - tek okuma ile karar ver
+            if (heartRate < minThreshold && now - lastLowAlertTime > cooldownMs) {
+                triggerAlert(
+                    title = context.getString(R.string.alert_low_title),
+                    message = context.getString(R.string.alert_low_message, heartRate, minThreshold),
+                    isLow = true
+                )
+                lastLowAlertTime = now
+            } else if (heartRate > maxThreshold && now - lastHighAlertTime > cooldownMs) {
+                triggerAlert(
+                    title = context.getString(R.string.alert_high_title),
+                    message = context.getString(R.string.alert_high_message, heartRate, maxThreshold),
+                    isLow = false
+                )
+                lastHighAlertTime = now
             }
-            heartRate > maxThreshold -> {
-                if (now - lastHighAlertTime > ALERT_COOLDOWN_MS) {
-                    triggerAlert(
-                        title = "Yüksek Nabız Uyarısı",
-                        message = "Nabız $heartRate BPM - Eşik değerin ($maxThreshold BPM) üstünde!",
-                        isLow = false
-                    )
-                    lastHighAlertTime = now
-                }
+        } else {
+            // Pencereli kontrol
+            // 1. Buffer'a ekle
+            readingBuffer.add(TimestampedReading(heartRate, now))
+
+            // 2. Pencere dışındaki okumaları temizle
+            // Zamanlama kayması (jitter) toleransı: +1 saniye ekle
+            // Client modda 5sn polling + 10sn pencere gibi sınır durumlarda
+            // milisaniye farkıyla okumaların silinmesini önler
+            val windowMs = windowSeconds * 1000L + 1000L
+            readingBuffer.removeAll { now - it.timestamp > windowMs }
+
+            // 3. Pencere içindeki eşik aşımlarını say
+            val lowExceedCount = readingBuffer.count { it.heartRate < minThreshold }
+            val highExceedCount = readingBuffer.count { it.heartRate > maxThreshold }
+
+            Log.d(TAG, "Window: buffer=${readingBuffer.size}, lowExceed=$lowExceedCount, " +
+                "highExceed=$highExceedCount, needed=$minExceedCount")
+
+            // 4. Yeterli aşım varsa ve cooldown geçmişse bildirim ver
+            if (lowExceedCount >= minExceedCount && now - lastLowAlertTime > cooldownMs) {
+                Log.w(TAG, "LOW ALERT: $lowExceedCount exceedances in ${windowSeconds}s")
+                triggerAlert(
+                    title = context.getString(R.string.alert_low_title),
+                    message = context.getString(R.string.alert_low_message, heartRate, minThreshold),
+                    isLow = true
+                )
+                lastLowAlertTime = now
+                readingBuffer.clear()
+            } else if (highExceedCount >= minExceedCount && now - lastHighAlertTime > cooldownMs) {
+                Log.w(TAG, "HIGH ALERT: $highExceedCount exceedances in ${windowSeconds}s")
+                triggerAlert(
+                    title = context.getString(R.string.alert_high_title),
+                    message = context.getString(R.string.alert_high_message, heartRate, maxThreshold),
+                    isLow = false
+                )
+                lastHighAlertTime = now
+                readingBuffer.clear()
+            }
+
+            // 5. Buffer boyut kontrolü (bellek koruması)
+            while (readingBuffer.size > MAX_BUFFER_SIZE) {
+                readingBuffer.removeAt(0)
             }
         }
     }
@@ -99,12 +146,10 @@ class AlertManager(private val context: Context) {
     private fun triggerAlert(title: String, message: String, isLow: Boolean) {
         Log.w(TAG, "ALERT: $title - $message")
 
-        // Vibrate
         if (prefs.alertVibrationEnabled) {
             vibrate()
         }
 
-        // Show notification with sound
         showAlertNotification(title, message, isLow)
     }
 
