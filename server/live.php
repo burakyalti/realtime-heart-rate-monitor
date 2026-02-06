@@ -164,7 +164,7 @@ foreach (array_reverse($hourlySummary) as $row) {
 }
 ?>
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="tr"><!-- lang will be updated by JS -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -209,8 +209,8 @@ foreach (array_reverse($hourlySummary) as $row) {
         /* Tab Navigation */
         .tabs {
             display: flex;
-            justify-content: center;
-            gap: 10px;
+            align-items: center;
+            gap: 8px;
             margin-bottom: 25px;
         }
 
@@ -902,33 +902,306 @@ foreach (array_reverse($hourlySummary) as $row) {
             .history-table { font-size: 12px; }
             .history-table th, .history-table td { padding: 8px 4px; }
         }
+
+        /* Language Switcher */
+        .lang-switch {
+            display: flex;
+            gap: 3px;
+            margin-left: auto;
+        }
+        .lang-btn {
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.4);
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.5px;
+        }
+        .lang-btn:hover {
+            background: rgba(255,255,255,0.15);
+            color: rgba(255,255,255,0.8);
+        }
+        .lang-btn.active {
+            background: rgba(255,255,255,0.2);
+            color: #fff;
+            border-color: rgba(255,255,255,0.4);
+        }
     </style>
+    <script>
+    // ===== i18n: Çoklu Dil Desteği =====
+    const translations = {
+        tr: {
+            // Header
+            title: 'Heart Rate Monitor',
+            tab_live: '📡 Canlı',
+            tab_history: '📜 Geçmiş',
+            status_live: 'Canlı Bağlantı',
+            status_offline_min: 'Bağlantı Yok ({min} dk önce)',
+            status_waiting: 'Veri Bekleniyor',
+            // HR Card
+            bpm: 'BPM',
+            low_hr: 'Düşük Nabız',
+            high_hr: 'Yüksek Nabız',
+            normal_hr: 'Normal',
+            last_update: 'Son güncelleme: {time}',
+            // Info grid
+            battery: 'Pil',
+            contact: 'Temas',
+            today: 'Bugün',
+            ago: 'Önce',
+            yes: 'Var',
+            no: 'Yok',
+            // Chart
+            chart_title: 'Nabız & EKG Grafiği',
+            ekg_title: 'EKG Grafiği (son 10sn)',
+            min_label: 'Min:',
+            avg_label: 'Ort:',
+            max_label: 'Max:',
+            records_label: 'Kayıt:',
+            // Time buttons
+            sec_10: '10sn',
+            sec_30: '30sn',
+            min_1: '1dk',
+            min_3: '3dk',
+            min_5: '5dk',
+            min_15: '15dk',
+            min_60: '60dk',
+            custom: '📅 Özel',
+            pause_title: 'Canlı güncellemeyi duraklat',
+            resume_title: 'Canlı güncellemeyi devam ettir',
+            // Custom time picker
+            hours_ago_label: 'Kaç saat önce:',
+            hour_1_ago: '1 saat önce',
+            hour_2_ago: '2 saat önce',
+            hour_3_ago: '3 saat önce',
+            hour_4_ago: '4 saat önce',
+            hour_6_ago: '6 saat önce',
+            hour_12_ago: '12 saat önce',
+            hour_24_ago: '24 saat önce',
+            apply: 'Uygula',
+            time_range_preview: '{start} - {end} ({hours} saat)',
+            // Time indicator
+            go_live: '🔴 Canlıya Dön',
+            swipe_hint: '← Şimdi | Geçmiş →',
+            // Range slider
+            range_title: '🎚️ Zaman Aralığı Seçimi',
+            selected_duration: 'Seçilen: {duration}',
+            duration_sec: '{s} saniye',
+            duration_min_sec: '{m} dk {s} sn',
+            duration_min: '{m} dakika',
+            duration_hour_min: '{h} sa {m} dk',
+            duration_hour: '{h} saat',
+            // Swipe time ago
+            time_sec_ago: '{s}sn önce',
+            time_min_sec_ago: '{m}dk {s}sn önce',
+            time_min_ago: '{m}dk önce',
+            time_hour_min_ago: '{h}sa {m}dk önce',
+            time_hour_ago: '{h}sa önce',
+            // Daily stats
+            today_stats: 'Bugünkü İstatistikler',
+            // No data
+            waiting_data: 'Veri Bekleniyor',
+            waiting_data_desc: 'Wahoo TICKR Fit bağlandığında veriler burada görünecek',
+            // History tab
+            minute_avg: 'Dakikalık Ortalama',
+            h_1: '1sa', h_4: '4sa', h_8: '8sa', h_12: '12sa', h_24: '24sa',
+            minutes_label: 'Dakika:',
+            last_24h: 'Son 24 Saat (Saatlik Ortalama)',
+            hourly_summary: 'Saatlik Özet',
+            th_hour: 'Saat',
+            th_readings: 'Okuma',
+            all_records: 'Tüm Kayıtlar ({count} kayıt)',
+            th_datetime: 'Tarih/Saat',
+            th_heart_rate: 'Nabız',
+            th_battery: 'Pil',
+            no_records: 'Henüz kayıt yok',
+            // Chart dataset labels
+            avg_bpm: 'Ortalama BPM',
+            tooltip_avg: 'Ort',
+            tooltip_min: 'Min',
+            tooltip_max: 'Max',
+            r_peak: '💓 R-Peak',
+            // Footer
+            footer_note: 'Canlı modda (10sn) grafikler 5 saniyede bir güncellenir',
+            // RR
+            rr_title: 'RR Intervals (HRV)'
+        },
+        en: {
+            title: 'Heart Rate Monitor',
+            tab_live: '📡 Live',
+            tab_history: '📜 History',
+            status_live: 'Live Connection',
+            status_offline_min: 'No Connection ({min} min ago)',
+            status_waiting: 'Waiting for Data',
+            bpm: 'BPM',
+            low_hr: 'Low Heart Rate',
+            high_hr: 'High Heart Rate',
+            normal_hr: 'Normal',
+            last_update: 'Last update: {time}',
+            battery: 'Battery',
+            contact: 'Contact',
+            today: 'Today',
+            ago: 'Ago',
+            yes: 'Yes',
+            no: 'No',
+            chart_title: 'Heart Rate & EKG Chart',
+            ekg_title: 'EKG Chart (last 10s)',
+            min_label: 'Min:',
+            avg_label: 'Avg:',
+            max_label: 'Max:',
+            records_label: 'Records:',
+            sec_10: '10s',
+            sec_30: '30s',
+            min_1: '1m',
+            min_3: '3m',
+            min_5: '5m',
+            min_15: '15m',
+            min_60: '60m',
+            custom: '📅 Custom',
+            pause_title: 'Pause live updates',
+            resume_title: 'Resume live updates',
+            hours_ago_label: 'Hours ago:',
+            hour_1_ago: '1 hour ago',
+            hour_2_ago: '2 hours ago',
+            hour_3_ago: '3 hours ago',
+            hour_4_ago: '4 hours ago',
+            hour_6_ago: '6 hours ago',
+            hour_12_ago: '12 hours ago',
+            hour_24_ago: '24 hours ago',
+            apply: 'Apply',
+            time_range_preview: '{start} - {end} ({hours} hours)',
+            go_live: '🔴 Go Live',
+            swipe_hint: '← Now | Past →',
+            range_title: '🎚️ Time Range Selection',
+            selected_duration: 'Selected: {duration}',
+            duration_sec: '{s} seconds',
+            duration_min_sec: '{m} min {s} sec',
+            duration_min: '{m} minutes',
+            duration_hour_min: '{h} hr {m} min',
+            duration_hour: '{h} hours',
+            time_sec_ago: '{s}s ago',
+            time_min_sec_ago: '{m}m {s}s ago',
+            time_min_ago: '{m}m ago',
+            time_hour_min_ago: '{h}h {m}m ago',
+            time_hour_ago: '{h}h ago',
+            today_stats: 'Today\'s Statistics',
+            waiting_data: 'Waiting for Data',
+            waiting_data_desc: 'Data will appear here when Wahoo TICKR Fit connects',
+            minute_avg: 'Minute Average',
+            h_1: '1h', h_4: '4h', h_8: '8h', h_12: '12h', h_24: '24h',
+            minutes_label: 'Minutes:',
+            last_24h: 'Last 24 Hours (Hourly Average)',
+            hourly_summary: 'Hourly Summary',
+            th_hour: 'Hour',
+            th_readings: 'Readings',
+            all_records: 'All Records ({count} records)',
+            th_datetime: 'Date/Time',
+            th_heart_rate: 'Heart Rate',
+            th_battery: 'Battery',
+            no_records: 'No records yet',
+            avg_bpm: 'Average BPM',
+            tooltip_avg: 'Avg',
+            tooltip_min: 'Min',
+            tooltip_max: 'Max',
+            r_peak: '💓 R-Peak',
+            footer_note: 'In live mode (10s) charts update every 5 seconds',
+            rr_title: 'RR Intervals (HRV)'
+        }
+    };
+
+    let currentLang = 'tr';
+
+    function getCookie(name) {
+        const v = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+        return v ? v.pop() : null;
+    }
+    function setCookie(name, value, days) {
+        const d = new Date();
+        d.setTime(d.getTime() + days * 86400000);
+        document.cookie = name + '=' + value + ';expires=' + d.toUTCString() + ';path=/;SameSite=Lax';
+    }
+
+    function detectLanguage() {
+        const cookie = getCookie('hr_lang');
+        if (cookie && translations[cookie]) return cookie;
+        const nav = (navigator.language || '').toLowerCase();
+        return nav.startsWith('tr') ? 'tr' : 'en';
+    }
+
+    function t(key, params) {
+        let str = (translations[currentLang] && translations[currentLang][key]) || translations['tr'][key] || key;
+        if (params) {
+            Object.keys(params).forEach(function(k) {
+                str = str.replace('{' + k + '}', params[k]);
+            });
+        }
+        return str;
+    }
+
+    function applyLanguage(lang) {
+        currentLang = lang;
+        setCookie('hr_lang', lang, 365);
+        document.documentElement.lang = lang === 'tr' ? 'tr' : 'en';
+
+        // Update data-i18n elements
+        document.querySelectorAll('[data-i18n]').forEach(function(el) {
+            var key = el.getAttribute('data-i18n');
+            var p = el.getAttribute('data-i18n-params');
+            el.textContent = t(key, p ? JSON.parse(p) : null);
+        });
+
+        // Update data-i18n-title elements
+        document.querySelectorAll('[data-i18n-title]').forEach(function(el) {
+            el.title = t(el.getAttribute('data-i18n-title'));
+        });
+
+        // Update data-i18n-placeholder elements
+        document.querySelectorAll('[data-i18n-placeholder]').forEach(function(el) {
+            el.placeholder = t(el.getAttribute('data-i18n-placeholder'));
+        });
+
+        // Update lang buttons
+        document.querySelectorAll('.lang-btn').forEach(function(btn) {
+            btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
+        });
+
+        // Update dynamic content
+        if (typeof updateDynamicTexts === 'function') updateDynamicTexts();
+    }
+
+    // Initialize language on page load (before DOM renders text)
+    currentLang = detectLanguage();
+    </script>
 </head>
 <body>
     <div class="container">
         <div class="header">
-            <h1>Heart Rate Monitor</h1>
+            <h1 data-i18n="title">Heart Rate Monitor</h1>
 
-            <!-- Tab Navigation -->
+            <!-- Tab Navigation + Language Switcher -->
             <div class="tabs">
-                <a href="?tab=live" class="tab-btn <?= $activeTab === 'live' ? 'active' : '' ?>">
-                    📡 Canlı
-                </a>
-                <a href="?tab=history" class="tab-btn <?= $activeTab === 'history' ? 'active' : '' ?>">
-                    📜 Geçmiş
-                </a>
+                <a href="?tab=live" class="tab-btn <?= $activeTab === 'live' ? 'active' : '' ?>" data-i18n="tab_live">📡 Canlı</a>
+                <a href="?tab=history" class="tab-btn <?= $activeTab === 'history' ? 'active' : '' ?>" data-i18n="tab_history">📜 Geçmiş</a>
+                <div class="lang-switch">
+                    <button class="lang-btn" data-lang="tr" onclick="applyLanguage('tr')">TR</button>
+                    <button class="lang-btn" data-lang="en" onclick="applyLanguage('en')">EN</button>
+                </div>
             </div>
 
             <?php if ($latest): ?>
                 <?php $isOnline = $latest['seconds_ago'] < 60; ?>
-                <div class="status-badge <?= $isOnline ? 'status-online' : 'status-offline' ?>">
+                <div class="status-badge <?= $isOnline ? 'status-online' : 'status-offline' ?>" id="statusBadge">
                     <span class="status-dot"></span>
-                    <?= $isOnline ? 'Canlı Bağlantı' : 'Bağlantı Yok (' . floor($latest['seconds_ago'] / 60) . ' dk önce)' ?>
+                    <span id="statusText" <?= $isOnline ? 'data-i18n="status_live"' : '' ?>><?= $isOnline ? 'Canlı Bağlantı' : 'Bağlantı Yok (' . floor($latest['seconds_ago'] / 60) . ' dk önce)' ?></span>
                 </div>
             <?php else: ?>
-                <div class="status-badge status-offline">
+                <div class="status-badge status-offline" id="statusBadge">
                     <span class="status-dot"></span>
-                    Veri Bekleniyor
+                    <span id="statusText" data-i18n="status_waiting">Veri Bekleniyor</span>
                 </div>
             <?php endif; ?>
         </div>
@@ -940,16 +1213,16 @@ foreach (array_reverse($hourlySummary) as $row) {
                 <div class="hr-card">
                     <div class="heart-icon">❤️</div>
                     <div class="hr-value"><?= (int)$latest['heart_rate'] ?></div>
-                    <div class="hr-unit">BPM</div>
+                    <div class="hr-unit" data-i18n="bpm">BPM</div>
 
                     <?php
                     $hr = (int)$latest['heart_rate'];
-                    if ($hr < 50) { $statusClass = 'hr-low'; $statusText = 'Düşük Nabız'; }
-                    elseif ($hr > 120) { $statusClass = 'hr-high'; $statusText = 'Yüksek Nabız'; }
-                    else { $statusClass = 'hr-normal'; $statusText = 'Normal'; }
+                    if ($hr < 50) { $statusClass = 'hr-low'; $statusKey = 'low_hr'; $statusText = 'Düşük Nabız'; }
+                    elseif ($hr > 120) { $statusClass = 'hr-high'; $statusKey = 'high_hr'; $statusText = 'Yüksek Nabız'; }
+                    else { $statusClass = 'hr-normal'; $statusKey = 'normal_hr'; $statusText = 'Normal'; }
                     ?>
-                    <div class="hr-status <?= $statusClass ?>"><?= $statusText ?></div>
-                    <div class="last-update">Son güncelleme: <?= date('H:i:s', strtotime($latest['recorded_at'])) ?></div>
+                    <div class="hr-status <?= $statusClass ?>" data-i18n="<?= $statusKey ?>"><?= $statusText ?></div>
+                    <div class="last-update"><script>document.write(t('last_update', {time: '<?= date('H:i:s', strtotime($latest['recorded_at'])) ?>'}))</script></div>
                 </div>
 
                 <!-- Info Grid -->
@@ -957,22 +1230,22 @@ foreach (array_reverse($hourlySummary) as $row) {
                     <div class="info-card">
                         <div class="icon">🔋</div>
                         <div class="value"><?= $latest['battery_level'] ? $latest['battery_level'] . '%' : '--' ?></div>
-                        <div class="label">Pil</div>
+                        <div class="label" data-i18n="battery">Pil</div>
                     </div>
                     <div class="info-card">
                         <div class="icon">📡</div>
-                        <div class="value"><?= $latest['sensor_contact'] ? 'Var' : 'Yok' ?></div>
-                        <div class="label">Temas</div>
+                        <div class="value"><script>document.write(<?= $latest['sensor_contact'] ? 'true' : 'false' ?> ? t('yes') : t('no'))</script></div>
+                        <div class="label" data-i18n="contact">Temas</div>
                     </div>
                     <div class="info-card">
                         <div class="icon">📊</div>
                         <div class="value"><?= number_format($stats['total_readings'] ?? 0) ?></div>
-                        <div class="label">Bugün</div>
+                        <div class="label" data-i18n="today">Bugün</div>
                     </div>
                     <div class="info-card">
                         <div class="icon">⏱️</div>
                         <div class="value"><?= $latest['seconds_ago'] < 60 ? $latest['seconds_ago'] . 's' : floor($latest['seconds_ago']/60) . 'm' ?></div>
-                        <div class="label">Önce</div>
+                        <div class="label" data-i18n="ago">Önce</div>
                     </div>
                 </div>
 
@@ -981,7 +1254,7 @@ foreach (array_reverse($hourlySummary) as $row) {
                     <?php $rrIntervals = json_decode($latest['rr_intervals'], true); ?>
                     <?php if (!empty($rrIntervals)): ?>
                         <div class="card">
-                            <h3>RR Intervals (HRV)</h3>
+                            <h3 data-i18n="rr_title">RR Intervals (HRV)</h3>
                             <div class="rr-values">
                                 <?php foreach ($rrIntervals as $rr): ?>
                                     <span class="rr-chip"><?= $rr ?> ms</span>
@@ -994,61 +1267,61 @@ foreach (array_reverse($hourlySummary) as $row) {
                 <!-- Zaman Seçici + Grafikler -->
                 <div class="card">
                     <div class="chart-header">
-                        <h3>Nabız & EKG Grafiği</h3>
+                        <h3 data-i18n="chart_title">Nabız & EKG Grafiği</h3>
                         <div class="time-selector">
-                            <button class="time-btn active" data-seconds="10">10sn</button>
-                            <button class="time-btn" data-seconds="30">30sn</button>
-                            <button class="time-btn" data-minutes="1">1dk</button>
-                            <button class="time-btn" data-minutes="3">3dk</button>
-                            <button class="time-btn" data-minutes="5">5dk</button>
-                            <button class="time-btn" data-minutes="15">15dk</button>
-                            <button class="time-btn" data-minutes="60">60dk</button>
-                            <button class="time-btn" data-minutes="custom" id="customTimeBtn">📅 Özel</button>
-                            <button class="time-btn pause-btn" id="pauseBtn" title="Canlı güncellemeyi duraklat">⏸️</button>
+                            <button class="time-btn active" data-seconds="10" data-i18n="sec_10">10sn</button>
+                            <button class="time-btn" data-seconds="30" data-i18n="sec_30">30sn</button>
+                            <button class="time-btn" data-minutes="1" data-i18n="min_1">1dk</button>
+                            <button class="time-btn" data-minutes="3" data-i18n="min_3">3dk</button>
+                            <button class="time-btn" data-minutes="5" data-i18n="min_5">5dk</button>
+                            <button class="time-btn" data-minutes="15" data-i18n="min_15">15dk</button>
+                            <button class="time-btn" data-minutes="60" data-i18n="min_60">60dk</button>
+                            <button class="time-btn" data-minutes="custom" id="customTimeBtn" data-i18n="custom">📅 Özel</button>
+                            <button class="time-btn pause-btn" id="pauseBtn" data-i18n-title="pause_title" title="Canlı güncellemeyi duraklat">⏸️</button>
                         </div>
                     </div>
 
                     <!-- Özel Zaman Seçici (gizli) -->
                     <div id="customTimePicker" class="custom-time-picker" style="display: none;">
                         <div class="time-picker-row">
-                            <label>Kaç saat önce:</label>
+                            <label data-i18n="hours_ago_label">Kaç saat önce:</label>
                             <select id="hoursAgo">
-                                <option value="1">1 saat önce</option>
-                                <option value="2">2 saat önce</option>
-                                <option value="3">3 saat önce</option>
-                                <option value="4">4 saat önce</option>
-                                <option value="6">6 saat önce</option>
-                                <option value="12">12 saat önce</option>
-                                <option value="24">24 saat önce</option>
+                                <option value="1" data-i18n="hour_1_ago">1 saat önce</option>
+                                <option value="2" data-i18n="hour_2_ago">2 saat önce</option>
+                                <option value="3" data-i18n="hour_3_ago">3 saat önce</option>
+                                <option value="4" data-i18n="hour_4_ago">4 saat önce</option>
+                                <option value="6" data-i18n="hour_6_ago">6 saat önce</option>
+                                <option value="12" data-i18n="hour_12_ago">12 saat önce</option>
+                                <option value="24" data-i18n="hour_24_ago">24 saat önce</option>
                             </select>
                             <span class="time-range-preview" id="timeRangePreview"></span>
-                            <button class="apply-btn" id="applyCustomTime">Uygula</button>
+                            <button class="apply-btn" id="applyCustomTime" data-i18n="apply">Uygula</button>
                         </div>
                     </div>
 
                     <!-- Zaman Göstergesi (kaydırma için) -->
                     <div id="timeIndicator" class="time-indicator" style="display: none;">
                         <span class="time-text"></span>
-                        <button id="goLiveBtn" class="go-live-btn">🔴 Canlıya Dön</button>
-                        <span class="swipe-hint">← Şimdi | Geçmiş →</span>
+                        <button id="goLiveBtn" class="go-live-btn" data-i18n="go_live">🔴 Canlıya Dön</button>
+                        <span class="swipe-hint" data-i18n="swipe_hint">← Şimdi | Geçmiş →</span>
                     </div>
 
                     <!-- Grafik İstatistikleri -->
                     <div class="chart-stats" id="chartStats">
                         <div class="chart-stat">
-                            <span class="label">Min:</span>
+                            <span class="label" data-i18n="min_label">Min:</span>
                             <span class="value" id="statMin">--</span>
                         </div>
                         <div class="chart-stat">
-                            <span class="label">Ort:</span>
+                            <span class="label" data-i18n="avg_label">Ort:</span>
                             <span class="value" id="statAvg">--</span>
                         </div>
                         <div class="chart-stat">
-                            <span class="label">Max:</span>
+                            <span class="label" data-i18n="max_label">Max:</span>
                             <span class="value" id="statMax">--</span>
                         </div>
                         <div class="chart-stat">
-                            <span class="label">Kayıt:</span>
+                            <span class="label" data-i18n="records_label">Kayıt:</span>
                             <span class="value" id="statCount">--</span>
                         </div>
                     </div>
@@ -1059,7 +1332,7 @@ foreach (array_reverse($hourlySummary) as $row) {
                     </div>
 
                     <!-- EKG Grafiği -->
-                    <h4 style="margin: 20px 0 10px; font-size: 13px; opacity: 0.7;">EKG Grafiği (son 10sn)</h4>
+                    <h4 style="margin: 20px 0 10px; font-size: 13px; opacity: 0.7;" data-i18n="ekg_title">EKG Grafiği (son 10sn)</h4>
                     <div class="chart-container ekg-container" style="height: 120px;">
                         <canvas id="ekgChart"></canvas>
                     </div>
@@ -1067,7 +1340,7 @@ foreach (array_reverse($hourlySummary) as $row) {
                     <!-- Range Slider (büyük zaman dilimleri için) -->
                     <div id="rangeSliderContainer" class="range-slider-container" style="display: none;">
                         <div class="range-slider-header">
-                            <h4>🎚️ Zaman Aralığı Seçimi</h4>
+                            <h4 data-i18n="range_title">🎚️ Zaman Aralığı Seçimi</h4>
                             <div class="range-slider-times">
                                 <span class="start-time" id="sliderStartTime">--:--</span>
                                 <span>→</span>
@@ -1075,14 +1348,14 @@ foreach (array_reverse($hourlySummary) as $row) {
                             </div>
                         </div>
                         <div id="rangeSlider" class="range-slider"></div>
-                        <div class="slider-duration" id="sliderDuration">Seçilen: -- dakika</div>
+                        <div class="slider-duration" id="sliderDuration"></div>
                     </div>
                 </div>
 
                 <!-- Günlük İstatistikler -->
                 <?php if (!empty($stats) && $stats['total_readings'] > 0): ?>
                     <div class="card">
-                        <h3>Bugünkü İstatistikler</h3>
+                        <h3 data-i18n="today_stats">Bugünkü İstatistikler</h3>
                         <div class="stats-grid">
                             <div class="stat-item stat-min">
                                 <div class="value"><?= (int)$stats['min_hr'] ?></div>
@@ -1090,7 +1363,7 @@ foreach (array_reverse($hourlySummary) as $row) {
                             </div>
                             <div class="stat-item stat-avg">
                                 <div class="value"><?= round($stats['avg_hr']) ?></div>
-                                <div class="label">Ort</div>
+                                <div class="label"><script>document.write(t('avg_label').replace(':',''))</script></div>
                             </div>
                             <div class="stat-item stat-max">
                                 <div class="value"><?= (int)$stats['max_hr'] ?></div>
@@ -1103,8 +1376,8 @@ foreach (array_reverse($hourlySummary) as $row) {
             <?php else: ?>
                 <div class="no-data">
                     <div class="icon">💓</div>
-                    <h2>Veri Bekleniyor</h2>
-                    <p>Wahoo TICKR Fit bağlandığında veriler burada görünecek</p>
+                    <h2 data-i18n="waiting_data">Veri Bekleniyor</h2>
+                    <p data-i18n="waiting_data_desc">Wahoo TICKR Fit bağlandığında veriler burada görünecek</p>
                 </div>
             <?php endif; ?>
 
@@ -1114,30 +1387,30 @@ foreach (array_reverse($hourlySummary) as $row) {
             <!-- Dakikalık Ortalama Grafiği -->
             <div class="card">
                 <div class="chart-header">
-                    <h3>Dakikalık Ortalama</h3>
+                    <h3 data-i18n="minute_avg">Dakikalık Ortalama</h3>
                     <div class="time-selector">
-                        <button class="time-btn minute-range-btn active" data-hours="1">1sa</button>
-                        <button class="time-btn minute-range-btn" data-hours="4">4sa</button>
-                        <button class="time-btn minute-range-btn" data-hours="8">8sa</button>
-                        <button class="time-btn minute-range-btn" data-hours="12">12sa</button>
-                        <button class="time-btn minute-range-btn" data-hours="24">24sa</button>
+                        <button class="time-btn minute-range-btn active" data-hours="1" data-i18n="h_1">1sa</button>
+                        <button class="time-btn minute-range-btn" data-hours="4" data-i18n="h_4">4sa</button>
+                        <button class="time-btn minute-range-btn" data-hours="8" data-i18n="h_8">8sa</button>
+                        <button class="time-btn minute-range-btn" data-hours="12" data-i18n="h_12">12sa</button>
+                        <button class="time-btn minute-range-btn" data-hours="24" data-i18n="h_24">24sa</button>
                     </div>
                 </div>
                 <div class="minute-stats" id="minuteStats">
                     <div class="chart-stat">
-                        <span class="label">Min:</span>
+                        <span class="label" data-i18n="min_label">Min:</span>
                         <span class="value" id="minuteStatMin" style="color: #3498db;">--</span>
                     </div>
                     <div class="chart-stat">
-                        <span class="label">Ort:</span>
+                        <span class="label" data-i18n="avg_label">Ort:</span>
                         <span class="value" id="minuteStatAvg" style="color: #667eea;">--</span>
                     </div>
                     <div class="chart-stat">
-                        <span class="label">Max:</span>
+                        <span class="label" data-i18n="max_label">Max:</span>
                         <span class="value" id="minuteStatMax" style="color: #ff6b6b;">--</span>
                     </div>
                     <div class="chart-stat">
-                        <span class="label">Dakika:</span>
+                        <span class="label" data-i18n="minutes_label">Dakika:</span>
                         <span class="value" id="minuteStatCount" style="color: #a78bfa;">--</span>
                     </div>
                 </div>
@@ -1149,7 +1422,7 @@ foreach (array_reverse($hourlySummary) as $row) {
             <!-- Son 24 Saat Grafiği (Saatlik) -->
             <?php if (!empty($hourlyData)): ?>
                 <div class="card">
-                    <h3>Son 24 Saat (Saatlik Ortalama)</h3>
+                    <h3 data-i18n="last_24h">Son 24 Saat (Saatlik Ortalama)</h3>
                     <div class="chart-container">
                         <canvas id="hourlyChart"></canvas>
                     </div>
@@ -1159,15 +1432,15 @@ foreach (array_reverse($hourlySummary) as $row) {
             <!-- Saatlik Özet -->
             <?php if (!empty($hourlySummary)): ?>
                 <div class="card">
-                    <h3>Saatlik Özet</h3>
+                    <h3 data-i18n="hourly_summary">Saatlik Özet</h3>
                     <div style="overflow-x: auto;">
                         <table class="hourly-table">
                             <thead>
                                 <tr>
-                                    <th>Saat</th>
-                                    <th>Okuma</th>
+                                    <th data-i18n="th_hour">Saat</th>
+                                    <th data-i18n="th_readings">Okuma</th>
                                     <th>Min</th>
-                                    <th>Ort</th>
+                                    <th><script>document.write(t('avg_label').replace(':',''))</script></th>
                                     <th>Max</th>
                                 </tr>
                             </thead>
@@ -1189,7 +1462,7 @@ foreach (array_reverse($hourlySummary) as $row) {
 
             <!-- Tüm Kayıtlar -->
             <div class="card">
-                <h3>Tüm Kayıtlar (<?= number_format($history['total']) ?> kayıt)</h3>
+                <h3 id="allRecordsTitle"><script>document.write(t('all_records', {count: '<?= number_format($history['total']) ?>'}))</script></h3>
 
                 <?php if (!empty($history['data'])): ?>
                     <div style="overflow-x: auto;">
@@ -1198,15 +1471,15 @@ foreach (array_reverse($hourlySummary) as $row) {
                                 <tr>
                                     <th>
                                         <a href="<?= getSortUrl('recorded_at', $sortBy, $sortDir) ?>" class="sort-link <?= $sortBy === 'recorded_at' ? 'active' : '' ?>">
-                                            Tarih/Saat <?= getSortIcon('recorded_at', $sortBy, $sortDir) ?>
+                                            <span data-i18n="th_datetime">Tarih/Saat</span> <?= getSortIcon('recorded_at', $sortBy, $sortDir) ?>
                                         </a>
                                     </th>
                                     <th>
                                         <a href="<?= getSortUrl('heart_rate', $sortBy, $sortDir) ?>" class="sort-link <?= $sortBy === 'heart_rate' ? 'active' : '' ?>">
-                                            Nabız <?= getSortIcon('heart_rate', $sortBy, $sortDir) ?>
+                                            <span data-i18n="th_heart_rate">Nabız</span> <?= getSortIcon('heart_rate', $sortBy, $sortDir) ?>
                                         </a>
                                     </th>
-                                    <th>Pil</th>
+                                    <th data-i18n="th_battery">Pil</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -1275,7 +1548,7 @@ foreach (array_reverse($hourlySummary) as $row) {
                 <?php else: ?>
                     <div class="no-data">
                         <div class="icon">📜</div>
-                        <p>Henüz kayıt yok</p>
+                        <p data-i18n="no_records">Henüz kayıt yok</p>
                     </div>
                 <?php endif; ?>
             </div>
@@ -1283,8 +1556,7 @@ foreach (array_reverse($hourlySummary) as $row) {
         <?php endif; ?>
 
         <div class="footer">
-            Wahoo TICKR Fit • <?= getDefaultDevice() ?><br>
-            <?= $activeTab === 'live' ? 'Canlı modda (10sn) grafikler 5 saniyede bir güncellenir' : '' ?>
+            <?php if ($activeTab === 'live'): ?><span data-i18n="footer_note">Canlı modda (10sn) grafikler 5 saniyede bir güncellenir</span><?php endif; ?>
         </div>
     </div>
 
@@ -1340,8 +1612,9 @@ foreach (array_reverse($hourlySummary) as $row) {
     const EKG_WINDOW = 10;  // EKG her zaman son 10 saniyeyi gösterir
     let stepSize = 10;  // Kaydırma adımı (saniye) - seçilen zaman dilimine göre değişir
 
-    // SSE değişkenleri
-    let eventSource = null;
+    // Polling değişkenleri
+    let pollTimer = null;
+    let lastPollId = 0;
 
     // Range Slider değişkenleri
     let rangeSlider = null;
@@ -1372,7 +1645,7 @@ foreach (array_reverse($hourlySummary) as $row) {
         // Nabız Grafiği
         hrChart = new Chart(hrCtx, {
             type: 'line',
-            data: { labels: [], datasets: [{ label: 'BPM', data: [], borderColor: '#ff6b6b', backgroundColor: hrGradient, borderWidth: 2, fill: true, tension: 0.3, pointRadius: 1, pointHoverRadius: 8, pointHoverBackgroundColor: '#ff6b6b' }] },
+            data: { labels: [], datasets: [{ label: t('bpm'), data: [], borderColor: '#ff6b6b', backgroundColor: hrGradient, borderWidth: 2, fill: true, tension: 0.3, pointRadius: 1, pointHoverRadius: 8, pointHoverBackgroundColor: '#ff6b6b' }] },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
@@ -1388,7 +1661,7 @@ foreach (array_reverse($hourlySummary) as $row) {
                         displayColors: false,
                         callbacks: {
                             title: (items) => items[0]?.label || '',
-                            label: (item) => `❤️ ${item.raw} BPM`
+                            label: (item) => `❤️ ${item.raw} ${t('bpm')}`
                         }
                     }
                 },
@@ -1409,7 +1682,7 @@ foreach (array_reverse($hourlySummary) as $row) {
         ekgChart = new Chart(ekgCtx, {
             type: 'line',
             data: { datasets: [{
-                label: 'EKG',
+                label: t('r_peak'),
                 data: [],  // {x: ms, y: value} formatında
                 borderColor: '#00ff00',
                 backgroundColor: 'transparent',
@@ -1451,7 +1724,7 @@ foreach (array_reverse($hourlySummary) as $row) {
                                 return `${h}:${m}:${s}.${mil}`;
                             },
                             label: (item) => {
-                                return '💓 R-Peak';
+                                return t('r_peak');
                             }
                         }
                     }
@@ -1627,17 +1900,17 @@ foreach (array_reverse($hourlySummary) as $row) {
         const durationSec = Math.round(durationMs / 1000);
         let durationText = '';
         if (durationSec < 60) {
-            durationText = `${durationSec} saniye`;
+            durationText = t('duration_sec', {s: durationSec});
         } else if (durationSec < 3600) {
             const min = Math.floor(durationSec / 60);
             const sec = durationSec % 60;
-            durationText = sec > 0 ? `${min} dk ${sec} sn` : `${min} dakika`;
+            durationText = sec > 0 ? t('duration_min_sec', {m: min, s: sec}) : t('duration_min', {m: min});
         } else {
             const hr = Math.floor(durationSec / 3600);
             const min = Math.floor((durationSec % 3600) / 60);
-            durationText = min > 0 ? `${hr} sa ${min} dk` : `${hr} saat`;
+            durationText = min > 0 ? t('duration_hour_min', {h: hr, m: min}) : t('duration_hour', {h: hr});
         }
-        document.getElementById('sliderDuration').textContent = `Seçilen: ${durationText}`;
+        document.getElementById('sliderDuration').textContent = t('selected_duration', {duration: durationText});
     }
 
     // Slider aralığına göre grafikleri filtrele ve render et
@@ -1779,8 +2052,9 @@ foreach (array_reverse($hourlySummary) as $row) {
         const start = new Date(now.getTime() - hoursAgo * 60 * 60 * 1000);
         const end = now;
 
-        const fmt = (d) => d.toLocaleTimeString('tr-TR', { hour: '2-digit', minute: '2-digit' });
-        document.getElementById('timeRangePreview').textContent = `${fmt(start)} - ${fmt(end)} (${hoursAgo} saat)`;
+        const locale = currentLang === 'tr' ? 'tr-TR' : 'en-US';
+        const fmt = (d) => d.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+        document.getElementById('timeRangePreview').textContent = t('time_range_preview', {start: fmt(start), end: fmt(end), hours: hoursAgo});
     }
 
     document.getElementById('hoursAgo')?.addEventListener('change', updateTimePreview);
@@ -1799,49 +2073,35 @@ foreach (array_reverse($hourlySummary) as $row) {
 
     // ===== SSE (Server-Sent Events) =====
 
-    function startSSE() {
-        if (eventSource) {
-            eventSource.close();
-        }
-
-        eventSource = new EventSource('/hr/api/sse.php');
-
-        eventSource.addEventListener('connected', (e) => {
-            console.log('[SSE] Bağlandı:', JSON.parse(e.data));
-        });
-
-        eventSource.addEventListener('heartbeat', (e) => {
-            const d = JSON.parse(e.data);
-            console.log(`[SSE] Yeni veri: ${d.heart_rate} BPM (${d.time})`);
-
-            // 1) HR kartını güncelle (her zaman)
-            updateHRCardFromSSE(d);
-
-            // 2) Grafikleri güncelle (canlı modda ve duraklatılmamışsa)
-            if (!isPaused && selectedTimeAgo === 0 && !customStart && !customEnd) {
-                loadChartData();
-            }
-        });
-
-        eventSource.addEventListener('timeout', (e) => {
-            console.log('[SSE] Timeout, yeniden bağlanıyor...');
-            // EventSource otomatik yeniden bağlanır
-        });
-
-        eventSource.addEventListener('error', (e) => {
-            console.log('[SSE] Hata veya bağlantı kesildi, yeniden bağlanıyor...');
-        });
-
-        eventSource.onerror = () => {
-            // EventSource otomatik retry yapar (varsayılan ~3sn)
-            console.log('[SSE] Bağlantı koptu, otomatik yeniden deneniyor...');
-        };
+    function startPolling() {
+        stopPolling();
+        pollOnce(); // İlk çağrı hemen
+        pollTimer = setInterval(pollOnce, 2000); // 2 saniyede bir
     }
 
-    function stopSSE() {
-        if (eventSource) {
-            eventSource.close();
-            eventSource = null;
+    async function pollOnce() {
+        try {
+            const response = await fetch('/hr/api/latest.php');
+            const json = await response.json();
+            if (json.success && json.data) {
+                const d = json.data;
+                // 1) HR kartını güncelle
+                updateHRCardFromSSE(d);
+
+                // 2) Grafikleri güncelle (canlı modda ve duraklatılmamışsa)
+                if (!isPaused && selectedTimeAgo === 0 && !customStart && !customEnd) {
+                    loadChartData();
+                }
+            }
+        } catch (e) {
+            console.log('[Poll] Hata:', e.message);
+        }
+    }
+
+    function stopPolling() {
+        if (pollTimer) {
+            clearInterval(pollTimer);
+            pollTimer = null;
         }
     }
 
@@ -1857,19 +2117,19 @@ foreach (array_reverse($hourlySummary) as $row) {
             hrStatusEl.classList.remove('hr-low', 'hr-normal', 'hr-high');
             if (d.heart_rate < 50) {
                 hrStatusEl.classList.add('hr-low');
-                hrStatusEl.textContent = 'Düşük Nabız';
+                hrStatusEl.textContent = t('low_hr');
             } else if (d.heart_rate > 120) {
                 hrStatusEl.classList.add('hr-high');
-                hrStatusEl.textContent = 'Yüksek Nabız';
+                hrStatusEl.textContent = t('high_hr');
             } else {
                 hrStatusEl.classList.add('hr-normal');
-                hrStatusEl.textContent = 'Normal';
+                hrStatusEl.textContent = t('normal_hr');
             }
         }
 
         // Son güncelleme zamanı
         const lastUpdateEl = document.querySelector('.last-update');
-        if (lastUpdateEl) lastUpdateEl.textContent = `Son güncelleme: ${d.time}`;
+        if (lastUpdateEl) lastUpdateEl.textContent = t('last_update', {time: d.time});
 
         // Pil seviyesi
         const batteryEl = document.querySelector('.info-card:nth-child(1) .value');
@@ -1877,7 +2137,7 @@ foreach (array_reverse($hourlySummary) as $row) {
 
         // Sensör teması
         const contactEl = document.querySelector('.info-card:nth-child(2) .value');
-        if (contactEl) contactEl.textContent = d.sensor_contact ? 'Var' : 'Yok';
+        if (contactEl) contactEl.textContent = d.sensor_contact ? t('yes') : t('no');
 
         // Ne kadar önce
         const agoEl = document.querySelector('.info-card:nth-child(4) .value');
@@ -1891,7 +2151,8 @@ foreach (array_reverse($hourlySummary) as $row) {
             const isOnline = d.seconds_ago < 60;
             statusBadge.classList.remove('status-online', 'status-offline');
             statusBadge.classList.add(isOnline ? 'status-online' : 'status-offline');
-            statusBadge.innerHTML = `<span class="status-dot"></span>${isOnline ? 'Canlı Bağlantı' : 'Bağlantı Yok (' + Math.floor(d.seconds_ago / 60) + ' dk önce)'}`;
+            const statusText = isOnline ? t('status_live') : t('status_offline_min', {min: Math.floor(d.seconds_ago / 60)});
+            statusBadge.innerHTML = `<span class="status-dot"></span><span id="statusText">${statusText}</span>`;
         }
     }
 
@@ -1902,11 +2163,11 @@ foreach (array_reverse($hourlySummary) as $row) {
         if (isPaused) {
             btn.textContent = '▶️';
             btn.classList.add('paused');
-            btn.title = 'Canlı güncellemeyi devam ettir';
+            btn.title = t('resume_title');
         } else {
             btn.textContent = '⏸️';
             btn.classList.remove('paused');
-            btn.title = 'Canlı güncellemeyi duraklat';
+            btn.title = t('pause_title');
             // Devam ettirince hemen bir güncelleme yap
             if (selectedTimeAgo === 0 && !customStart && !customEnd) {
                 loadChartData();
@@ -2015,11 +2276,11 @@ foreach (array_reverse($hourlySummary) as $row) {
         if (isPaused) {
             btn.textContent = '▶️';
             btn.classList.add('paused');
-            btn.title = 'Canlı güncellemeyi devam ettir';
+            btn.title = t('resume_title');
         } else {
             btn.textContent = '⏸️';
             btn.classList.remove('paused');
-            btn.title = 'Canlı güncellemeyi duraklat';
+            btn.title = t('pause_title');
         }
     }
 
@@ -2039,15 +2300,15 @@ foreach (array_reverse($hourlySummary) as $row) {
             } else if (selectedTimeAgo > 0) {
                 // Swipe ile geçmişe bakıyoruz
                 if (selectedTimeAgo < 60) {
-                    timeText = `${selectedTimeAgo}sn önce`;
+                    timeText = t('time_sec_ago', {s: selectedTimeAgo});
                 } else if (selectedTimeAgo < 3600) {
                     const min = Math.floor(selectedTimeAgo / 60);
                     const sec = selectedTimeAgo % 60;
-                    timeText = sec > 0 ? `${min}dk ${sec}sn önce` : `${min}dk önce`;
+                    timeText = sec > 0 ? t('time_min_sec_ago', {m: min, s: sec}) : t('time_min_ago', {m: min});
                 } else {
                     const hour = Math.floor(selectedTimeAgo / 3600);
                     const min = Math.floor((selectedTimeAgo % 3600) / 60);
-                    timeText = min > 0 ? `${hour}sa ${min}dk önce` : `${hour}sa önce`;
+                    timeText = min > 0 ? t('time_hour_min_ago', {h: hour, m: min}) : t('time_hour_ago', {h: hour});
                 }
             }
             indicator.querySelector('.time-text').textContent = timeText;
@@ -2074,10 +2335,38 @@ foreach (array_reverse($hourlySummary) as $row) {
     // Canlıya dön butonu
     document.getElementById('goLiveBtn')?.addEventListener('click', goToLive);
 
+    // Dinamik metinleri güncelle (dil değiştiğinde)
+    function updateDynamicTexts() {
+        // HR chart dataset labels
+        if (typeof hrChart !== 'undefined' && hrChart) {
+            hrChart.data.datasets[0].label = t('bpm');
+            hrChart.update('none');
+        }
+        // EKG chart
+        if (typeof ekgChart !== 'undefined' && ekgChart) {
+            ekgChart.data.datasets[0].label = t('r_peak');
+            ekgChart.update('none');
+        }
+        // Minute chart (history tab)
+        if (typeof minuteChart !== 'undefined' && minuteChart) {
+            minuteChart.data.datasets[0].label = t('avg_bpm');
+            minuteChart.data.datasets[1].label = t('tooltip_min');
+            minuteChart.data.datasets[2].label = t('tooltip_max');
+            minuteChart.update('none');
+        }
+        // Pause button title
+        if (typeof updatePauseButton === 'function') updatePauseButton();
+        // Time indicator
+        if (typeof updateTimeIndicator === 'function') updateTimeIndicator();
+        // Slider display
+        if (typeof updateSliderDisplay === 'function') updateSliderDisplay();
+    }
+
     // Sayfa yüklendiğinde
     document.addEventListener('DOMContentLoaded', function() {
+        applyLanguage(currentLang);
         initCharts();
-        startSSE();  // SSE ile anlık güncelleme
+        startPolling();  // Polling ile güncelleme (2sn aralık)
         setupSwipeHandlers();
     });
     </script>
@@ -2102,7 +2391,7 @@ foreach (array_reverse($hourlySummary) as $row) {
                     labels: [],
                     datasets: [
                         {
-                            label: 'Ortalama BPM',
+                            label: t('avg_bpm'),
                             data: [],
                             borderColor: '#667eea',
                             backgroundColor: gradient,
@@ -2114,7 +2403,7 @@ foreach (array_reverse($hourlySummary) as $row) {
                             pointHoverBackgroundColor: '#667eea'
                         },
                         {
-                            label: 'Min',
+                            label: t('tooltip_min'),
                             data: [],
                             borderColor: 'rgba(52, 152, 219, 0.3)',
                             borderWidth: 1,
@@ -2124,7 +2413,7 @@ foreach (array_reverse($hourlySummary) as $row) {
                             pointRadius: 0
                         },
                         {
-                            label: 'Max',
+                            label: t('tooltip_max'),
                             data: [],
                             borderColor: 'rgba(255, 107, 107, 0.3)',
                             borderWidth: 1,
@@ -2159,7 +2448,7 @@ foreach (array_reverse($hourlySummary) as $row) {
                             callbacks: {
                                 title: (items) => items[0]?.label || '',
                                 label: (item) => {
-                                    const names = ['Ort', 'Min', 'Max'];
+                                    const names = [t('tooltip_avg'), t('tooltip_min'), t('tooltip_max')];
                                     return ` ${names[item.datasetIndex]}: ${item.raw} BPM`;
                                 }
                             }
@@ -2229,8 +2518,19 @@ foreach (array_reverse($hourlySummary) as $row) {
             });
         });
 
+        // Dinamik metinleri güncelle (dil değiştiğinde - history tab)
+        function updateDynamicTexts() {
+            if (typeof minuteChart !== 'undefined' && minuteChart) {
+                minuteChart.data.datasets[0].label = t('avg_bpm');
+                minuteChart.data.datasets[1].label = t('tooltip_min');
+                minuteChart.data.datasets[2].label = t('tooltip_max');
+                minuteChart.update('none');
+            }
+        }
+
         // Sayfa yüklendiğinde
         document.addEventListener('DOMContentLoaded', function() {
+            applyLanguage(currentLang);
             initMinuteChart();
             loadMinuteData(1); // Varsayılan: son 1 saat
         });
@@ -2249,7 +2549,7 @@ foreach (array_reverse($hourlySummary) as $row) {
                 data: {
                     labels: <?= json_encode($hourlyLabels) ?>,
                     datasets: [{
-                        label: 'Ortalama BPM',
+                        label: t('avg_bpm'),
                         data: <?= json_encode($hourlyData) ?>,
                         borderColor: '#2ed573',
                         backgroundColor: gradient2,

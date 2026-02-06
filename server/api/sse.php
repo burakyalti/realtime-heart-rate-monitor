@@ -18,7 +18,7 @@ require_once __DIR__ . '/../config.php';
 
 $deviceId = getDefaultDevice();
 $lastId = 0;
-$maxRuntime = 300; // 5 dakika sonra bağlantıyı kes (client otomatik yeniden bağlanır)
+$maxRuntime = 60; // 1 dakika sonra bağlantıyı kes (client otomatik yeniden bağlanır)
 $startTime = time();
 $checkInterval = 1; // 1 saniye
 
