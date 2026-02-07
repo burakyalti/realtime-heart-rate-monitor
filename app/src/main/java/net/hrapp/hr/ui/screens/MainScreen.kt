@@ -79,6 +79,11 @@ fun MainScreen(
     isDiscovering: Boolean = false,
     onStartDiscovery: () -> Unit = {},
     onStopDiscovery: () -> Unit = {},
+    // Client connectivity state
+    clientConnectivityType: String = "ok",
+    clientStaleSeconds: Int = 0,
+    // Server API connectivity state
+    serverApiConnected: Boolean = true,
     navigateToSettings: Boolean = false,
     onNavigatedToSettings: () -> Unit = {},
     modifier: Modifier = Modifier
@@ -134,6 +139,7 @@ fun MainScreen(
                     maxHeartRate = maxHeartRate,
                     minThreshold = minThreshold,
                     maxThreshold = maxThreshold,
+                    apiConnected = serverApiConnected,
                     onStartService = onStartService,
                     onStopService = onStopService,
                     onEnableBluetooth = onEnableBluetooth,
@@ -145,6 +151,8 @@ fun MainScreen(
                 // WebView - live.php
                 ClientMonitorScreen(
                     liveUrl = liveUrl,
+                    connectivityType = clientConnectivityType,
+                    staleSeconds = clientStaleSeconds,
                     modifier = Modifier.padding(paddingValues)
                 )
             }

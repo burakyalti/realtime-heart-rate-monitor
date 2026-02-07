@@ -158,12 +158,39 @@
     <string name="alert_channel_name">Nabız Uyarıları</string>
     <string name="alert_channel_desc">Nabız eşikleri aşıldığında uyarı verir</string>
 
+    <!-- Connectivity Alerts -->
+    <string name="alert_connectivity_api_title">Sunucu Bağlantısı Kesildi</string>
+    <string name="alert_connectivity_api_message">Sunucuya erişilemiyor.\n\nOlası nedenler:\n• İnternet bağlantısı kapalı\n• Sunucu adresi yanlış veya sunucu çevrimdışı</string>
+    <string name="alert_connectivity_ble_title">Sensör Bağlantısı Kesildi</string>
+    <string name="alert_connectivity_ble_message">Nabız sensörüyle bağlantı koptu.\n\nOlası nedenler:\n• Sensör koldan çıkarılmış olabilir\n• Telefon sensörden uzaklaşmış olabilir\n• Bluetooth kapatılmış olabilir</string>
+    <string name="alert_connectivity_stale_title">Nabız Verisi Gelmiyor</string>
+    <string name="alert_connectivity_stale_message">Uzun süredir güncel nabız verisi alınamıyor.\n\nOlası nedenler:\n• Sensör koldan çıkarılmış olabilir\n• Sensör telefonu ile bağlantı kopmuş olabilir\n• Sensör telefonunun interneti kapalı olabilir\n• Sensör telefonundaki uygulama kapanmış olabilir</string>
+    <string name="notification_api_error">Sunucu bağlantısı yok</string>
+
+    <!-- Connectivity Popup (in-app) -->
+    <string name="popup_stale_title">Nabız Verisi Gelmiyor</string>
+    <string name="popup_stale_last_data">Son veri %d saniye önce alındı</string>
+    <string name="popup_stale_causes">Olası nedenler:</string>
+    <string name="popup_stale_cause_sensor">Sensör koldan çıkarılmış olabilir</string>
+    <string name="popup_stale_cause_connection">Sensör telefonu ile bağlantı kopmuş olabilir</string>
+    <string name="popup_stale_cause_internet">Sensör telefonunun interneti kapalı olabilir</string>
+    <string name="popup_stale_cause_app">Sensör telefonundaki uygulama kapanmış olabilir</string>
+    <string name="popup_api_error_title">Sunucu Bağlantısı Yok</string>
+    <string name="popup_api_error_causes">Olası nedenler:</string>
+    <string name="popup_api_error_cause_internet">İnternet bağlantısı kapalı</string>
+    <string name="popup_api_error_cause_server">Sunucu adresi yanlış veya sunucu çevrimdışı</string>
+
+    <!-- API Status -->
+    <string name="status_api_connected">API</string>
+    <string name="status_api_error">API</string>
+
     <!-- Client Service Notifications -->
     <string name="client_service_title">Nabız İzleme</string>
     <string name="client_service_starting">İzleme başlatılıyor…</string>
     <string name="client_service_hr">Nabız: %d BPM</string>
     <string name="client_service_waiting">Veri bekleniyor…</string>
     <string name="client_service_error">Bağlantı hatası</string>
+    <string name="client_service_stale">Güncel veri yok</string>
 
     <!-- Settings - Service -->
     <string name="settings_service_title">Servis</string>

@@ -207,6 +207,13 @@ class MainActivity : ComponentActivity() {
         var signalQuality by remember { mutableStateOf<Float?>(null) }
         var heartRateHistory by remember { mutableStateOf<List<Int>>(emptyList()) }
 
+        // Connectivity state (client mode)
+        var clientConnectivityType by remember { mutableStateOf("ok") }
+        var clientStaleSeconds by remember { mutableIntStateOf(0) }
+
+        // API connectivity state (server mode)
+        var serverApiConnected by remember { mutableStateOf(true) }
+
         // BLE device discovery state
         val bleManager = remember { BleManager(context) }
         val scannedDevices = remember { mutableStateListOf<ScannedDevice>() }
@@ -345,6 +352,9 @@ class MainActivity : ComponentActivity() {
                                 sensorContact = intent.getBooleanExtra(HeartMonitorService.EXTRA_SENSOR_CONTACT, false)
                             }
                         }
+                        HeartMonitorService.ACTION_API_STATE -> {
+                            serverApiConnected = intent.getBooleanExtra(HeartMonitorService.EXTRA_API_CONNECTED, true)
+                        }
                     }
                 }
             }
@@ -354,6 +364,7 @@ class MainActivity : ComponentActivity() {
                 addAction(HeartMonitorService.ACTION_CONNECTION_STATE)
                 addAction(HeartMonitorService.ACTION_OFFLINE_COUNT)
                 addAction(HeartMonitorService.ACTION_DEVICE_INFO)
+                addAction(HeartMonitorService.ACTION_API_STATE)
             }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -372,6 +383,37 @@ class MainActivity : ComponentActivity() {
 
             onDispose {
                 context.unregisterReceiver(receiver)
+            }
+        }
+
+        // Listen for client connectivity broadcasts (only in Client mode)
+        DisposableEffect(isServerMode) {
+            if (isServerMode) {
+                return@DisposableEffect onDispose { }
+            }
+
+            val clientReceiver = object : BroadcastReceiver() {
+                override fun onReceive(context: Context?, intent: Intent?) {
+                    when (intent?.action) {
+                        ClientMonitorService.ACTION_CONNECTIVITY_STATE -> {
+                            clientConnectivityType = intent.getStringExtra(ClientMonitorService.EXTRA_CONNECTIVITY_TYPE) ?: "ok"
+                            clientStaleSeconds = intent.getIntExtra(ClientMonitorService.EXTRA_STALE_SECONDS, 0)
+                        }
+                    }
+                }
+            }
+
+            val clientFilter = IntentFilter(ClientMonitorService.ACTION_CONNECTIVITY_STATE)
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                context.registerReceiver(clientReceiver, clientFilter, Context.RECEIVER_NOT_EXPORTED)
+            } else {
+                @Suppress("UnspecifiedRegisterReceiverFlag")
+                context.registerReceiver(clientReceiver, clientFilter)
+            }
+
+            onDispose {
+                context.unregisterReceiver(clientReceiver)
             }
         }
 
@@ -586,6 +628,11 @@ class MainActivity : ComponentActivity() {
                 onStopDiscovery = {
                     bleManager.stopDeviceDiscovery()
                 },
+                // Client connectivity state
+                clientConnectivityType = clientConnectivityType,
+                clientStaleSeconds = clientStaleSeconds,
+                // Server API connectivity state
+                serverApiConnected = serverApiConnected,
                 navigateToSettings = navigateToSettings,
                 onNavigatedToSettings = { navigateToSettings = false }
             )

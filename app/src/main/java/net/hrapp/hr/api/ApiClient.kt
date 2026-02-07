@@ -67,7 +67,9 @@ object ApiClient {
     /**
      * Client modunda son nabız değerini almak için
      */
-    suspend fun getLatestHeartRate(): Result<Int?> {
+    data class LatestHrResponse(val heartRate: Int?, val secondsAgo: Int?)
+
+    suspend fun getLatestHeartRate(): Result<LatestHrResponse> {
         return try {
             val response = client.get("$baseUrl/latest.php") {
                 header("X-API-Key", apiKey)
@@ -76,11 +78,12 @@ object ApiClient {
             Log.d(TAG, "Latest HR response: ${response.status} - $responseBody")
 
             if (response.status.isSuccess()) {
-                // Response format: {"heart_rate": 75, "timestamp": "..."}
                 val hrMatch = Regex(""""heart_rate":\s*(\d+)""").find(responseBody)
                 val heartRate = hrMatch?.groupValues?.get(1)?.toIntOrNull()
-                Log.d(TAG, "Parsed heart rate: $heartRate")
-                Result.success(heartRate)
+                val agoMatch = Regex(""""seconds_ago":\s*(\d+)""").find(responseBody)
+                val secondsAgo = agoMatch?.groupValues?.get(1)?.toIntOrNull()
+                Log.d(TAG, "Parsed: HR=$heartRate, secondsAgo=$secondsAgo")
+                Result.success(LatestHrResponse(heartRate, secondsAgo))
             } else {
                 Log.e(TAG, "Failed to get latest HR: ${response.status}")
                 Result.failure(Exception("Server error: ${response.status}"))

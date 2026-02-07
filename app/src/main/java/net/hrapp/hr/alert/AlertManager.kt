@@ -20,10 +20,17 @@ import net.hrapp.hr.data.PreferencesManager
 
 class AlertManager(private val context: Context) {
 
+    enum class ConnectivityAlertType {
+        API_UNREACHABLE,     // API URL'e erişilemedi
+        BLE_DISCONNECTED,    // BLE bağlantısı kesildi
+        DATA_STALE           // Güncel veri gelmiyor (client modda)
+    }
+
     companion object {
         private const val TAG = "AlertManager"
         const val ALERT_CHANNEL_ID = "heart_rate_alert_channel"
         private const val ALERT_NOTIFICATION_ID = 2001
+        private const val CONNECTIVITY_NOTIFICATION_ID = 2003
         private const val MAX_BUFFER_SIZE = 120
     }
 
@@ -32,6 +39,11 @@ class AlertManager(private val context: Context) {
 
     private var lastLowAlertTime = 0L
     private var lastHighAlertTime = 0L
+
+    // İletişim kaybı cooldown timer'ları
+    private var lastApiAlertTime = 0L
+    private var lastBleAlertTime = 0L
+    private var lastStaleDataAlertTime = 0L
 
     // Zaman penceresi için timestamped okuma buffer'ı
     private data class TimestampedReading(val heartRate: Int, val timestamp: Long)
@@ -208,5 +220,87 @@ class AlertManager(private val context: Context) {
 
     fun dismissAlert() {
         notificationManager.cancel(ALERT_NOTIFICATION_ID)
+    }
+
+    /**
+     * İletişim kaybı bildirimi kontrol et.
+     * Mevcut cooldown sistemini kullanır, alertsEnabled master switch'ine bağlıdır.
+     * @return true ise alert tetiklendi
+     */
+    fun checkConnectivityAlert(type: ConnectivityAlertType): Boolean {
+        if (!prefs.alertsEnabled) return false
+
+        val now = System.currentTimeMillis()
+        val cooldownMs = prefs.alertCooldownMinutes * 60 * 1000L
+
+        val lastAlertTime = when (type) {
+            ConnectivityAlertType.API_UNREACHABLE -> lastApiAlertTime
+            ConnectivityAlertType.BLE_DISCONNECTED -> lastBleAlertTime
+            ConnectivityAlertType.DATA_STALE -> lastStaleDataAlertTime
+        }
+
+        if (now - lastAlertTime <= cooldownMs) {
+            Log.d(TAG, "Connectivity alert $type in cooldown, skipping")
+            return false
+        }
+
+        val (title, message) = when (type) {
+            ConnectivityAlertType.API_UNREACHABLE ->
+                context.getString(R.string.alert_connectivity_api_title) to
+                context.getString(R.string.alert_connectivity_api_message)
+            ConnectivityAlertType.BLE_DISCONNECTED ->
+                context.getString(R.string.alert_connectivity_ble_title) to
+                context.getString(R.string.alert_connectivity_ble_message)
+            ConnectivityAlertType.DATA_STALE ->
+                context.getString(R.string.alert_connectivity_stale_title) to
+                context.getString(R.string.alert_connectivity_stale_message)
+        }
+
+        when (type) {
+            ConnectivityAlertType.API_UNREACHABLE -> lastApiAlertTime = now
+            ConnectivityAlertType.BLE_DISCONNECTED -> lastBleAlertTime = now
+            ConnectivityAlertType.DATA_STALE -> lastStaleDataAlertTime = now
+        }
+
+        Log.w(TAG, "CONNECTIVITY ALERT: $type - $title")
+        if (prefs.alertVibrationEnabled) {
+            vibrate()
+        }
+        showConnectivityNotification(title, message)
+        return true
+    }
+
+    /**
+     * İletişim geri geldiğinde connectivity bildirimini kaldır.
+     */
+    fun clearConnectivityState(type: ConnectivityAlertType) {
+        Log.d(TAG, "Connectivity restored: $type")
+        notificationManager.cancel(CONNECTIVITY_NOTIFICATION_ID)
+    }
+
+    private fun showConnectivityNotification(title: String, message: String) {
+        val pendingIntent = PendingIntent.getActivity(
+            context,
+            0,
+            Intent(context, MainActivity::class.java),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val soundUri = getAlertSoundUri()
+
+        val notification = NotificationCompat.Builder(context, ALERT_CHANNEL_ID)
+            .setContentTitle(title)
+            .setContentText(message)
+            .setStyle(NotificationCompat.BigTextStyle().bigText(message))
+            .setSmallIcon(android.R.drawable.ic_dialog_alert)
+            .setContentIntent(pendingIntent)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setCategory(NotificationCompat.CATEGORY_ALARM)
+            .setAutoCancel(true)
+            .setSound(soundUri)
+            .setVibrate(longArrayOf(0, 500, 200, 500))
+            .build()
+
+        notificationManager.notify(CONNECTIVITY_NOTIFICATION_ID, notification)
     }
 }

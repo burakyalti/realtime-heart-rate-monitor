@@ -30,6 +30,8 @@ import androidx.compose.material.icons.filled.BluetoothDisabled
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Cloud
+import androidx.compose.material.icons.filled.CloudOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -260,11 +262,12 @@ fun DashboardScreen(
 private fun StatusRow(
     isBluetoothOn: Boolean,
     connectionState: ConnectionState,
+    apiConnected: Boolean = true,
     onBluetoothClick: () -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         // Bluetooth Status
         BluetoothStatusBadge(
@@ -276,6 +279,12 @@ private fun StatusRow(
         // Device Connection Status
         DeviceConnectionBadge(
             connectionState = connectionState,
+            modifier = Modifier.weight(1f)
+        )
+
+        // API Connection Status
+        ApiStatusBadge(
+            isConnected = apiConnected,
             modifier = Modifier.weight(1f)
         )
     }
@@ -403,6 +412,53 @@ private fun DeviceConnectionBadge(
             )
             Text(
                 text = statusText,
+                color = color,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+    }
+}
+
+@Composable
+private fun ApiStatusBadge(
+    isConnected: Boolean,
+    modifier: Modifier = Modifier
+) {
+    val color = if (isConnected) HeartMonitorColors.Connected else HeartMonitorColors.Critical
+
+    Row(
+        modifier = modifier
+            .background(
+                color = color.copy(alpha = 0.15f),
+                shape = RoundedCornerShape(16.dp)
+            )
+            .border(
+                width = 1.dp,
+                color = color.copy(alpha = 0.3f),
+                shape = RoundedCornerShape(16.dp)
+            )
+            .padding(horizontal = 12.dp, vertical = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = if (isConnected) Icons.Default.Cloud else Icons.Default.CloudOff,
+            contentDescription = "API",
+            tint = color,
+            modifier = Modifier.size(20.dp)
+        )
+
+        Spacer(modifier = Modifier.width(6.dp))
+
+        Column {
+            Text(
+                text = stringResource(R.string.status_api_connected),
+                color = HeartMonitorColors.TextSecondary,
+                fontSize = 10.sp
+            )
+            Text(
+                text = stringResource(if (isConnected) R.string.dashboard_on else R.string.dashboard_off),
                 color = color,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold
@@ -1135,6 +1191,7 @@ fun DashboardScreenContent(
     maxHeartRate: Int? = null,
     minThreshold: Int = 50,
     maxThreshold: Int = 120,
+    apiConnected: Boolean = true,
     onStartService: () -> Unit,
     onStopService: () -> Unit,
     onEnableBluetooth: () -> Unit,
@@ -1153,10 +1210,11 @@ fun DashboardScreenContent(
     ) {
         Spacer(modifier = Modifier.height(16.dp))
 
-        // Status Row - Bluetooth + Device Connection
+        // Status Row - Bluetooth + Device Connection + API
         StatusRow(
             isBluetoothOn = !isBluetoothOff,
             connectionState = connectionState,
+            apiConnected = apiConnected,
             onBluetoothClick = onEnableBluetooth
         )
 

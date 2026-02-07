@@ -45,6 +45,7 @@ class HeartMonitorService : Service() {
         const val ACTION_CONNECTION_STATE = "net.hrapp.hr.action.CONNECTION_STATE"
         const val ACTION_OFFLINE_COUNT = "net.hrapp.hr.action.OFFLINE_COUNT"
         const val ACTION_DEVICE_INFO = "net.hrapp.hr.action.DEVICE_INFO"
+        const val ACTION_API_STATE = "net.hrapp.hr.action.API_STATE"
 
         // Broadcast extra'ları
         const val EXTRA_HEART_RATE = "extra_heart_rate"
@@ -55,6 +56,7 @@ class HeartMonitorService : Service() {
         const val EXTRA_RR_INTERVALS = "extra_rr_intervals"
         const val EXTRA_SIGNAL_QUALITY = "extra_signal_quality"
         const val EXTRA_SENT_COUNT = "extra_sent_count"
+        const val EXTRA_API_CONNECTED = "extra_api_connected"
 
         // Offline buffer flush interval (5 dakika)
         private const val BUFFER_FLUSH_INTERVAL_MS = 5 * 60 * 1000L
@@ -64,6 +66,10 @@ class HeartMonitorService : Service() {
 
         // Sensor contact tolerance - kaç ardışık false okuma sonrası "temas yok" sayılsın
         private const val SENSOR_CONTACT_TOLERANCE = 3
+
+        // İletişim kaybı eşikleri
+        private const val API_FAILURE_ALERT_THRESHOLD = 5   // 5 ardışık API hatası
+        private const val BLE_DISCONNECT_ALERT_MS = 30_000L // 30 saniye BLE kopuk kalırsa alert
     }
 
     private lateinit var bleManager: BleManager
@@ -76,6 +82,7 @@ class HeartMonitorService : Service() {
     private val serviceScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
     private var bufferFlushJob: Job? = null
     private var watchdogJob: Job? = null
+    private var bleDisconnectJob: Job? = null
 
     private var currentHeartRate: Int = 0
     private var isConnected: Boolean = false
@@ -90,6 +97,10 @@ class HeartMonitorService : Service() {
 
     // Sensor contact tolerance - ardışık "temas yok" sayacı
     private var noContactCounter: Int = 0
+
+    // İletişim kaybı takibi
+    private var consecutiveApiFailures: Int = 0
+    private var apiConnected: Boolean = true
 
     override fun onCreate() {
         super.onCreate()
@@ -119,7 +130,19 @@ class HeartMonitorService : Service() {
                 return START_STICKY
             }
             else -> {
-                startForeground(NOTIFICATION_ID, createNotification("Bağlanılıyor..."))
+                // Mod kontrolü: Client modundaysa doğru servise yönlendir
+                if (!prefs.isServerMode) {
+                    Log.w(TAG, "Not in server mode, redirecting to ClientMonitorService")
+                    startForeground(NOTIFICATION_ID, createNotification(getString(R.string.notification_text_connecting)))
+                    if (prefs.isServiceEnabled) {
+                        startForegroundService(Intent(this, ClientMonitorService::class.java).apply {
+                            action = ClientMonitorService.ACTION_START
+                        })
+                    }
+                    stopSelf()
+                    return START_NOT_STICKY
+                }
+                startForeground(NOTIFICATION_ID, createNotification(getString(R.string.notification_text_connecting)))
                 startMonitoring()
             }
         }
@@ -132,8 +155,15 @@ class HeartMonitorService : Service() {
     override fun onTaskRemoved(rootIntent: Intent?) {
         Log.w(TAG, "Task removed, scheduling restart...")
 
-        val restartIntent = Intent(this, HeartMonitorService::class.java).apply {
-            action = ACTION_START
+        // Moda göre doğru servisi yeniden başlat
+        val restartIntent = if (prefs.isServerMode) {
+            Intent(this, HeartMonitorService::class.java).apply {
+                action = ACTION_START
+            }
+        } else {
+            Intent(this, ClientMonitorService::class.java).apply {
+                action = ClientMonitorService.ACTION_START
+            }
         }
 
         val pendingIntent = PendingIntent.getService(
@@ -158,6 +188,8 @@ class HeartMonitorService : Service() {
 
         isMonitoringStarted = false
         stopWatchdogTimer()
+        bleDisconnectJob?.cancel()
+        bleDisconnectJob = null
         bufferFlushJob?.cancel()
         bufferFlushJob = null
         serviceScope.cancel()
@@ -223,11 +255,30 @@ class HeartMonitorService : Service() {
                         if (result.isSuccess) {
                             sentCount++
                             Log.d(TAG, "Sent: $sentCount, Errors: $errorCount")
+                            // API bağlantısı geri geldiyse bildirimi kaldır
+                            if (!apiConnected) {
+                                apiConnected = true
+                                consecutiveApiFailures = 0
+                                alertManager.clearConnectivityState(AlertManager.ConnectivityAlertType.API_UNREACHABLE)
+                                broadcastApiState(true)
+                                Log.i(TAG, "API connection restored")
+                            }
+                            consecutiveApiFailures = 0
                         } else {
                             errorCount++
+                            consecutiveApiFailures++
                             offlineBuffer.add(data)
                             broadcastOfflineCount(offlineBuffer.getCount())
-                            Log.w(TAG, "Failed to send, added to offline buffer")
+                            Log.w(TAG, "Failed to send, added to offline buffer (consecutive: $consecutiveApiFailures)")
+                            // Ardışık hata eşiği aşıldıysa alert
+                            if (consecutiveApiFailures >= API_FAILURE_ALERT_THRESHOLD) {
+                                if (apiConnected) {
+                                    apiConnected = false
+                                    updateNotification(getString(R.string.notification_api_error))
+                                    broadcastApiState(false)
+                                }
+                                alertManager.checkConnectivityAlert(AlertManager.ConnectivityAlertType.API_UNREACHABLE)
+                            }
                         }
                     }
                 } else {
@@ -254,9 +305,20 @@ class HeartMonitorService : Service() {
                 lastDataReceivedTime = System.currentTimeMillis()
                 noContactCounter = 0
                 startWatchdogTimer()
+                // BLE kopukluk timer'ını iptal et ve bildirimi kaldır
+                bleDisconnectJob?.cancel()
+                bleDisconnectJob = null
+                alertManager.clearConnectivityState(AlertManager.ConnectivityAlertType.BLE_DISCONNECTED)
             } else {
                 // Bağlantı kesildi - watchdog timer'ı durdur
                 stopWatchdogTimer()
+                // BLE kopukluk alert timer'ını başlat
+                bleDisconnectJob?.cancel()
+                bleDisconnectJob = serviceScope.launch {
+                    delay(BLE_DISCONNECT_ALERT_MS)
+                    Log.w(TAG, "BLE disconnected for ${BLE_DISCONNECT_ALERT_MS}ms, triggering alert")
+                    alertManager.checkConnectivityAlert(AlertManager.ConnectivityAlertType.BLE_DISCONNECTED)
+                }
             }
         }
 
@@ -318,6 +380,13 @@ class HeartMonitorService : Service() {
         })
     }
 
+    private fun broadcastApiState(connected: Boolean) {
+        sendBroadcast(Intent(ACTION_API_STATE).apply {
+            putExtra(EXTRA_API_CONNECTED, connected)
+            setPackage(packageName)
+        })
+    }
+
     private fun broadcastCurrentState() {
         Log.d(TAG, "Broadcasting current state: connected=$isConnected, hr=$currentHeartRate, battery=$currentBatteryLevel")
 
@@ -341,6 +410,9 @@ class HeartMonitorService : Service() {
         serviceScope.launch {
             broadcastOfflineCount(offlineBuffer.getCount())
         }
+
+        // Broadcast API state
+        broadcastApiState(apiConnected)
     }
 
     private fun startWatchdogTimer() {
@@ -443,7 +515,7 @@ class HeartMonitorService : Service() {
             .setContentText(text)
             .setSmallIcon(android.R.drawable.ic_menu_mylocation)
             .setContentIntent(pendingIntent)
-            .addAction(android.R.drawable.ic_media_pause, "Durdur", stopIntent)
+            .addAction(android.R.drawable.ic_media_pause, getString(R.string.dashboard_btn_stop), stopIntent)
             .setOngoing(true)
             .setOnlyAlertOnce(true)
             .setPriority(NotificationCompat.PRIORITY_LOW)

@@ -38,8 +38,17 @@ class ClientMonitorService : Service() {
         const val ACTION_START = "net.hrapp.hr.action.CLIENT_START"
         const val ACTION_STOP = "net.hrapp.hr.action.CLIENT_STOP"
 
+        // UI broadcast action'ları
+        const val ACTION_CONNECTIVITY_STATE = "net.hrapp.hr.action.CLIENT_CONNECTIVITY"
+        const val EXTRA_CONNECTIVITY_TYPE = "connectivity_type"  // "stale", "api_error", "ok"
+        const val EXTRA_STALE_SECONDS = "stale_seconds"
+
         // Polling interval (5 saniye)
         private const val POLL_INTERVAL_MS = 5_000L
+
+        // İletişim kaybı eşikleri
+        private const val API_FAILURE_ALERT_THRESHOLD = 3    // 3 ardışık API hatası (5s*3 = 15sn)
+        private const val STALE_DETECT_THRESHOLD_S = 10      // 10 saniye sonra veri "eski" sayılır
     }
 
     private lateinit var alertManager: AlertManager
@@ -50,6 +59,12 @@ class ClientMonitorService : Service() {
     private var pollingJob: Job? = null
     private var isMonitoringStarted: Boolean = false
     private var lastHeartRate: Int? = null
+
+    // İletişim kaybı takibi
+    private var consecutiveApiFailures: Int = 0
+    private var apiConnected: Boolean = true
+    private var lastFreshDataTime: Long = 0L
+    private var consecutiveStaleDetections: Int = 0
 
     override fun onCreate() {
         super.onCreate()
@@ -70,6 +85,18 @@ class ClientMonitorService : Service() {
                 return START_NOT_STICKY
             }
             else -> {
+                // Mod kontrolü: Server modundaysa doğru servise yönlendir
+                if (prefs.isServerMode) {
+                    Log.w(TAG, "Not in client mode, redirecting to HeartMonitorService")
+                    startForeground(NOTIFICATION_ID, createNotification(getString(R.string.client_service_starting)))
+                    if (prefs.isServiceEnabled) {
+                        startForegroundService(Intent(this, HeartMonitorService::class.java).apply {
+                            action = HeartMonitorService.ACTION_START
+                        })
+                    }
+                    stopSelf()
+                    return START_NOT_STICKY
+                }
                 startForeground(NOTIFICATION_ID, createNotification(getString(R.string.client_service_starting)))
                 startMonitoring()
             }
@@ -83,8 +110,15 @@ class ClientMonitorService : Service() {
     override fun onTaskRemoved(rootIntent: Intent?) {
         Log.w(TAG, "Task removed, scheduling restart...")
 
-        val restartIntent = Intent(this, ClientMonitorService::class.java).apply {
-            action = ACTION_START
+        // Moda göre doğru servisi yeniden başlat
+        val restartIntent = if (prefs.isServerMode) {
+            Intent(this, HeartMonitorService::class.java).apply {
+                action = HeartMonitorService.ACTION_START
+            }
+        } else {
+            Intent(this, ClientMonitorService::class.java).apply {
+                action = ACTION_START
+            }
         }
 
         val pendingIntent = PendingIntent.getService(
@@ -141,26 +175,84 @@ class ClientMonitorService : Service() {
             while (isActive) {
                 try {
                     val result = ApiClient.getLatestHeartRate()
-                    result.onSuccess { heartRate ->
+                    result.onSuccess { response ->
+                        // API erişimi başarılı - hata sayacını sıfırla
+                        if (!apiConnected) {
+                            apiConnected = true
+                            alertManager.clearConnectivityState(AlertManager.ConnectivityAlertType.API_UNREACHABLE)
+                            broadcastConnectivityState("ok")
+                            Log.i(TAG, "API connection restored")
+                        }
+                        consecutiveApiFailures = 0
+
+                        val heartRate = response.heartRate
+                        val secondsAgo = response.secondsAgo
+
                         if (heartRate != null && heartRate > 0) {
                             lastHeartRate = heartRate
-                            Log.d(TAG, "Got heart rate: $heartRate BPM")
+                            Log.d(TAG, "Got heart rate: $heartRate BPM, secondsAgo=$secondsAgo")
 
-                            updateNotification(getString(R.string.client_service_hr, heartRate))
+                            // Veri tazelik kontrolü: seconds_ago > 10s ise "eski" say
+                            val isStale = secondsAgo != null && secondsAgo > STALE_DETECT_THRESHOLD_S
 
-                            // Check thresholds and alert
-                            alertManager.checkAndAlert(
-                                heartRate = heartRate,
-                                minThreshold = prefs.minHeartRateThreshold,
-                                maxThreshold = prefs.maxHeartRateThreshold
-                            )
+                            if (isStale) {
+                                consecutiveStaleDetections++
+                                Log.w(TAG, "Data is stale: ${secondsAgo}s old (detections: $consecutiveStaleDetections/${prefs.alertMinExceedCount})")
+                                updateNotification(getString(R.string.client_service_stale))
+                                // Popup hemen gösterilsin
+                                broadcastConnectivityState("stale", secondsAgo ?: 0)
+                                // Alert sadece aşım sayısı karşılandığında
+                                if (consecutiveStaleDetections >= prefs.alertMinExceedCount) {
+                                    alertManager.checkConnectivityAlert(AlertManager.ConnectivityAlertType.DATA_STALE)
+                                }
+                            } else {
+                                if (consecutiveStaleDetections > 0) {
+                                    consecutiveStaleDetections = 0
+                                    alertManager.clearConnectivityState(AlertManager.ConnectivityAlertType.DATA_STALE)
+                                    broadcastConnectivityState("ok")
+                                }
+                                lastFreshDataTime = System.currentTimeMillis()
+                                updateNotification(getString(R.string.client_service_hr, heartRate))
+
+                                // Check thresholds and alert
+                                alertManager.checkAndAlert(
+                                    heartRate = heartRate,
+                                    minThreshold = prefs.minHeartRateThreshold,
+                                    maxThreshold = prefs.maxHeartRateThreshold
+                                )
+                            }
                         } else {
                             Log.d(TAG, "No heart rate data available")
                             updateNotification(getString(R.string.client_service_waiting))
+
+                            // HR yok ama API erişilebilir - stale sayacını artır
+                            if (lastFreshDataTime > 0) {
+                                val staleSec = ((System.currentTimeMillis() - lastFreshDataTime) / 1000).toInt()
+                                if (staleSec > STALE_DETECT_THRESHOLD_S) {
+                                    consecutiveStaleDetections++
+                                    Log.w(TAG, "No HR data, stale: ${staleSec}s (detections: $consecutiveStaleDetections/${prefs.alertMinExceedCount})")
+                                    updateNotification(getString(R.string.client_service_stale))
+                                    broadcastConnectivityState("stale", staleSec)
+                                    if (consecutiveStaleDetections >= prefs.alertMinExceedCount) {
+                                        alertManager.checkConnectivityAlert(AlertManager.ConnectivityAlertType.DATA_STALE)
+                                    }
+                                }
+                            }
                         }
                     }.onFailure { e ->
                         Log.e(TAG, "Failed to get heart rate: ${e.message}")
+                        consecutiveApiFailures++
+                        Log.w(TAG, "API failure (consecutive: $consecutiveApiFailures)")
                         updateNotification(getString(R.string.client_service_error))
+
+                        // Ardışık hata eşiği aşıldıysa alert ve popup
+                        if (consecutiveApiFailures >= API_FAILURE_ALERT_THRESHOLD) {
+                            if (apiConnected) {
+                                apiConnected = false
+                                broadcastConnectivityState("api_error")
+                            }
+                            alertManager.checkConnectivityAlert(AlertManager.ConnectivityAlertType.API_UNREACHABLE)
+                        }
                     }
                 } catch (e: Exception) {
                     Log.e(TAG, "Polling error: ${e.message}", e)
@@ -202,6 +294,14 @@ class ClientMonitorService : Service() {
     private fun updateNotification(text: String) {
         val notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.notify(NOTIFICATION_ID, createNotification(text))
+    }
+
+    private fun broadcastConnectivityState(type: String, staleSeconds: Int = 0) {
+        sendBroadcast(Intent(ACTION_CONNECTIVITY_STATE).apply {
+            setPackage(packageName)
+            putExtra(EXTRA_CONNECTIVITY_TYPE, type)
+            if (staleSeconds > 0) putExtra(EXTRA_STALE_SECONDS, staleSeconds)
+        })
     }
 
     private fun acquireWakeLock() {
