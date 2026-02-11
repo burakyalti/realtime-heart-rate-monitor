@@ -4,6 +4,7 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
+import com.google.firebase.crashlytics.FirebaseCrashlytics
 import net.hrapp.hr.service.ServiceHealthWorker
 
 class HeartMonitorApp : Application() {
@@ -16,6 +17,9 @@ class HeartMonitorApp : Application() {
         super.onCreate()
         createNotificationChannel()
         ServiceHealthWorker.schedule(this)
+
+        // Firebase Crashlytics
+        FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(true)
     }
 
     private fun createNotificationChannel() {

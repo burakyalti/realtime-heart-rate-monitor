@@ -3,6 +3,8 @@ package net.hrapp.hr.service
 import android.app.*
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ServiceInfo
+import android.os.Build
 import android.os.IBinder
 import android.os.PowerManager
 import android.os.SystemClock
@@ -88,7 +90,7 @@ class ClientMonitorService : Service() {
                 // Mod kontrolü: Server modundaysa doğru servise yönlendir
                 if (prefs.isServerMode) {
                     Log.w(TAG, "Not in client mode, redirecting to HeartMonitorService")
-                    startForeground(NOTIFICATION_ID, createNotification(getString(R.string.client_service_starting)))
+                    startForegroundCompat(createNotification(getString(R.string.client_service_starting)))
                     if (prefs.isServiceEnabled) {
                         startForegroundService(Intent(this, HeartMonitorService::class.java).apply {
                             action = HeartMonitorService.ACTION_START
@@ -97,7 +99,7 @@ class ClientMonitorService : Service() {
                     stopSelf()
                     return START_NOT_STICKY
                 }
-                startForeground(NOTIFICATION_ID, createNotification(getString(R.string.client_service_starting)))
+                startForegroundCompat(createNotification(getString(R.string.client_service_starting)))
                 startMonitoring()
             }
         }
@@ -260,6 +262,18 @@ class ClientMonitorService : Service() {
 
                 delay(POLL_INTERVAL_MS)
             }
+        }
+    }
+
+    /**
+     * Android 14+ (API 34) dataSync tipine süre sınırı koyuyor.
+     * specialUse tipi ile başlatarak crash'i önlüyoruz.
+     */
+    private fun startForegroundCompat(notification: Notification) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            startForeground(NOTIFICATION_ID, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE)
+        } else {
+            startForeground(NOTIFICATION_ID, notification)
         }
     }
 

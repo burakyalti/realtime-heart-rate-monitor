@@ -29,5 +29,8 @@ Thumbs.db
 # Keep hr.apk in repo
 !hr.apk
 
+# Firebase (proje bazlı - kendi google-services.json dosyanızı kullanın)
+app/google-services.json
+
 # Original screenshot files (copies in screenshots/ folder)
 photo_*.jpg
